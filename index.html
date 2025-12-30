@@ -323,6 +323,11 @@
             transition: all 0.3s ease;
             white-space: nowrap;
             overflow: visible;
+            cursor: pointer;
+        }
+
+        .word-display:hover {
+            text-shadow: 0 4px 30px rgba(255, 255, 255, 0.5);
         }
 
         .word-display.vertical {
@@ -442,6 +447,193 @@
 
         .word-indicator.active {
             display: block;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-word {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .modal-close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-body {
+            color: #333;
+        }
+
+        .phonetic-section {
+            margin-bottom: 20px;
+        }
+
+        .phonetic {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .audio-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+
+        .audio-button:hover {
+            transform: scale(1.05);
+        }
+
+        .meaning-section {
+            margin-bottom: 25px;
+        }
+
+        .part-of-speech {
+            font-size: 18px;
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .definition-item {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 3px solid #667eea;
+        }
+
+        .definition {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 5px;
+        }
+
+        .example {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .synonyms, .antonyms {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .synonyms span, .antonyms span {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin: 3px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                max-height: 70vh;
+            }
+
+            .modal-word {
+                font-size: 24px;
+            }
+
+            .part-of-speech {
+                font-size: 16px;
+            }
+
+            .definition {
+                font-size: 14px;
+            }
         }
 
         /* 竖屏模式 */
@@ -606,7 +798,20 @@
             <button class="switch-button" id="switchButton" onclick="switchWord()" title="切换单词">⇄</button>
             <button class="rotate-button" onclick="toggleOrientation()" title="切换方向">⤸</button>
             <div class="word-indicator" id="wordIndicator">1/1</div>
-            <div class="word-display" id="wordDisplay"></div>
+            <div class="word-display" id="wordDisplay" onclick="showWordDetail()"></div>
+        </div>
+
+        <!-- 单词详情弹窗 -->
+        <div class="modal" id="modal" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <div class="modal-word" id="modalWord"></div>
+                    <button class="modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -620,6 +825,9 @@
         const selectedCount = document.getElementById('selectedCount');
         const switchButton = document.getElementById('switchButton');
         const wordIndicator = document.getElementById('wordIndicator');
+        const modal = document.getElementById('modal');
+        const modalWord = document.getElementById('modalWord');
+        const modalBody = document.getElementById('modalBody');
         
         const MAX_HISTORY = 20;
         let wordHistory = [];
@@ -781,6 +989,121 @@
 
         function toggleOrientation() {
             wordDisplay.classList.toggle('vertical');
+        }
+
+        // 显示单词详情
+        async function showWordDetail() {
+            const word = currentWords[currentWordIndex];
+            modalWord.textContent = word;
+            modalBody.innerHTML = '<div class="loading">加载中...</div>';
+            modal.classList.add('active');
+            
+            try {
+                // 尝试直接调用 API
+                let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+                
+                // 如果直接调用失败，使用 CORS 代理
+                if (!response.ok) {
+                    response = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)}`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error('单词未找到');
+                }
+                
+                const data = await response.json();
+                displayWordInfo(data);
+            } catch (error) {
+                console.error('API Error:', error);
+                modalBody.innerHTML = `<div class="error-message">😕 抱歉，未找到"${word}"的详细信息<br><small>请检查网络连接</small></div>`;
+            }
+        }
+
+        // 展示单词信息
+        function displayWordInfo(data) {
+            if (!data || data.length === 0) {
+                modalBody.innerHTML = '<div class="error-message">未找到单词信息</div>';
+                return;
+            }
+
+            const wordData = data[0];
+            let html = '';
+
+            // 音标和发音
+            if (wordData.phonetics && wordData.phonetics.length > 0) {
+                html += '<div class="phonetic-section">';
+                
+                const phoneticWithText = wordData.phonetics.find(p => p.text);
+                if (phoneticWithText) {
+                    html += `<div class="phonetic">${phoneticWithText.text}</div>`;
+                }
+                
+                const phoneticWithAudio = wordData.phonetics.find(p => p.audio);
+                if (phoneticWithAudio && phoneticWithAudio.audio) {
+                    html += `<button class="audio-button" onclick="playAudio('${phoneticWithAudio.audio}')">🔊 播放发音</button>`;
+                }
+                
+                html += '</div>';
+            }
+
+            // 释义
+            if (wordData.meanings && wordData.meanings.length > 0) {
+                wordData.meanings.forEach(meaning => {
+                    html += '<div class="meaning-section">';
+                    html += `<div class="part-of-speech">${meaning.partOfSpeech}</div>`;
+                    
+                    if (meaning.definitions && meaning.definitions.length > 0) {
+                        meaning.definitions.slice(0, 3).forEach((def, index) => {
+                            html += '<div class="definition-item">';
+                            html += `<div class="definition">${index + 1}. ${def.definition}</div>`;
+                            
+                            if (def.example) {
+                                html += `<div class="example">"${def.example}"</div>`;
+                            }
+                            
+                            html += '</div>';
+                        });
+                    }
+                    
+                    // 同义词
+                    if (meaning.synonyms && meaning.synonyms.length > 0) {
+                        html += '<div class="synonyms"><strong>同义词：</strong>';
+                        meaning.synonyms.slice(0, 5).forEach(syn => {
+                            html += `<span>${syn}</span>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    // 反义词
+                    if (meaning.antonyms && meaning.antonyms.length > 0) {
+                        html += '<div class="antonyms"><strong>反义词：</strong>';
+                        meaning.antonyms.slice(0, 5).forEach(ant => {
+                            html += `<span>${ant}</span>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                });
+            }
+
+            modalBody.innerHTML = html;
+        }
+
+        // 播放音频
+        function playAudio(url) {
+            const audio = new Audio(url);
+            audio.play().catch(err => {
+                console.error('播放失败:', err);
+                alert('音频播放失败');
+            });
+        }
+
+        // 关闭弹窗
+        function closeModal(event) {
+            if (!event || event.target === modal) {
+                modal.classList.remove('active');
+            }
         }
 
         // 页面加载时初始化
