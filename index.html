@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>蚂蚁单词</title>
+    <title>英语单词展示器</title>
     <style>
         * {
             margin: 0;
@@ -191,26 +191,47 @@
             text-align: left;
         }
 
-        select {
-            width: 100%;
-            padding: 18px;
-            font-size: 18px;
+        .history-checkboxes {
+            max-height: 200px;
+            overflow-y: auto;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
-            outline: none;
-            transition: all 0.3s;
-            background: white;
-            color: #333;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 6px;
+        }
+
+        .checkbox-item:hover {
+            background: #f0f0f0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
             cursor: pointer;
         }
 
-        select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .checkbox-item label {
+            flex: 1;
+            font-size: 16px;
+            cursor: pointer;
+            color: #333;
         }
 
-        select option {
-            padding: 10px;
+        .selected-count {
+            color: #667eea;
+            font-size: 13px;
+            margin-top: 5px;
+            text-align: right;
         }
 
         .divider {
@@ -373,6 +394,56 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
+        .switch-button {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 20px;
+            font-size: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+            z-index: 10;
+            line-height: 1;
+            width: 60px;
+            height: 60px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .switch-button.active {
+            display: flex;
+        }
+
+        .switch-button:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .word-indicator {
+            position: absolute;
+            top: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            display: none;
+        }
+
+        .word-indicator.active {
+            display: block;
+        }
+
         /* 竖屏模式 */
         @media (orientation: portrait) {
             .word-display {
@@ -425,6 +496,18 @@
                 height: 50px;
                 font-size: 24px;
             }
+
+            .switch-button {
+                top: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+
+            .word-indicator {
+                top: 90px;
+                font-size: 12px;
+            }
         }
 
         /* 小屏横屏 */
@@ -452,6 +535,18 @@
                 width: 45px;
                 height: 45px;
                 font-size: 20px;
+            }
+
+            .switch-button {
+                top: 15px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .word-indicator {
+                top: 75px;
+                font-size: 11px;
             }
 
             .display-screen {
@@ -489,25 +584,28 @@
 
     <div class="container">
         <div class="input-screen" id="inputScreen">
-            <h1>🐜 蚂蚁看单词</h1>
+            <h1>📚 输入英语单词</h1>
             
             <div class="history-section" id="historySection" style="display: none;">
-                <div class="history-label">最近使用的单词</div>
-                <select id="historySelect" onchange="selectFromHistory()">
-                    <option value="">选择历史单词...</option>
-                </select>
+                <div class="history-label">最近使用的单词（可多选）</div>
+                <div class="history-checkboxes" id="historyCheckboxes">
+                    <!-- 动态生成复选框 -->
+                </div>
+                <div class="selected-count" id="selectedCount">已选择 0 个单词</div>
                 <div class="divider">或</div>
             </div>
             
             <div class="input-group">
-                <input type="text" id="wordInput" placeholder="请输入单词..." autocomplete="off">
+                <input type="text" id="wordInput" placeholder="请输入单词（多个单词用逗号分隔）..." autocomplete="off">
             </div>
             <button onclick="showWord()">展示单词</button>
         </div>
 
         <div class="display-screen" id="displayScreen">
             <button class="back-button" onclick="goBack()" title="返回">←</button>
+            <button class="switch-button" id="switchButton" onclick="switchWord()" title="切换单词">⇄</button>
             <button class="rotate-button" onclick="toggleOrientation()" title="切换方向">⤸</button>
+            <div class="word-indicator" id="wordIndicator">1/1</div>
             <div class="word-display" id="wordDisplay"></div>
         </div>
     </div>
@@ -518,64 +616,79 @@
         const displayScreen = document.getElementById('displayScreen');
         const wordDisplay = document.getElementById('wordDisplay');
         const historySection = document.getElementById('historySection');
-        const historySelect = document.getElementById('historySelect');
+        const historyCheckboxes = document.getElementById('historyCheckboxes');
+        const selectedCount = document.getElementById('selectedCount');
+        const switchButton = document.getElementById('switchButton');
+        const wordIndicator = document.getElementById('wordIndicator');
         
         const MAX_HISTORY = 20;
         let wordHistory = [];
+        let currentWords = [];
+        let currentWordIndex = 0;
 
         // 页面加载时读取历史记录
         function loadHistory() {
             const stored = localStorage.getItem('wordHistory');
             if (stored) {
                 wordHistory = JSON.parse(stored);
-                updateHistorySelect();
+                updateHistoryCheckboxes();
             }
         }
 
-        // 更新下拉框
-        function updateHistorySelect() {
-            historySelect.innerHTML = '<option value="">选择历史单词...</option>';
+        // 更新复选框列表
+        function updateHistoryCheckboxes() {
+            historyCheckboxes.innerHTML = '';
             
             if (wordHistory.length > 0) {
                 historySection.style.display = 'block';
-                wordHistory.forEach(word => {
-                    const option = document.createElement('option');
-                    option.value = word;
-                    option.textContent = word;
-                    historySelect.appendChild(option);
+                wordHistory.forEach((word, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `word-${index}`;
+                    checkbox.value = word;
+                    checkbox.onchange = updateSelectedCount;
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `word-${index}`;
+                    label.textContent = word;
+                    
+                    div.appendChild(checkbox);
+                    div.appendChild(label);
+                    historyCheckboxes.appendChild(div);
                 });
             } else {
                 historySection.style.display = 'none';
             }
+            updateSelectedCount();
+        }
+
+        // 更新选中数量
+        function updateSelectedCount() {
+            const checkboxes = historyCheckboxes.querySelectorAll('input[type="checkbox"]:checked');
+            const count = checkboxes.length;
+            selectedCount.textContent = `已选择 ${count} 个单词`;
         }
 
         // 保存单词到历史记录
         function saveToHistory(word) {
-            // 移除重复的单词（如果存在）
             wordHistory = wordHistory.filter(w => w.toLowerCase() !== word.toLowerCase());
-            
-            // 添加到开头
             wordHistory.unshift(word);
             
-            // 限制数量
             if (wordHistory.length > MAX_HISTORY) {
                 wordHistory = wordHistory.slice(0, MAX_HISTORY);
             }
             
-            // 保存到localStorage
             localStorage.setItem('wordHistory', JSON.stringify(wordHistory));
-            
-            // 更新下拉框
-            updateHistorySelect();
+            updateHistoryCheckboxes();
         }
 
-        // 从历史记录选择
-        function selectFromHistory() {
-            const selectedWord = historySelect.value;
-            if (selectedWord) {
-                wordInput.value = selectedWord;
-                showWord();
-            }
+        // 获取选中的单词
+        function getSelectedWords() {
+            const checkboxes = historyCheckboxes.querySelectorAll('input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
         }
 
         wordInput.addEventListener('keypress', (e) => {
@@ -585,29 +698,84 @@
         });
 
         function showWord() {
-            const word = wordInput.value.trim();
+            // 获取选中的历史单词
+            const selectedWords = getSelectedWords();
             
-            if (word === '') {
-                alert('请输入一个单词！');
+            // 获取手动输入的单词（支持逗号分隔）
+            const inputText = wordInput.value.trim();
+            let inputWords = [];
+            
+            if (inputText !== '') {
+                // 用逗号分隔，并清理空格
+                inputWords = inputText.split(',')
+                    .map(word => word.trim())
+                    .filter(word => word !== '');
+            }
+            
+            // 合并单词列表
+            currentWords = [];
+            
+            if (selectedWords.length > 0) {
+                currentWords = [...selectedWords];
+            }
+            
+            if (inputWords.length > 0) {
+                // 添加输入的单词到列表，并保存到历史
+                inputWords.forEach(word => {
+                    if (!currentWords.some(w => w.toLowerCase() === word.toLowerCase())) {
+                        currentWords.push(word);
+                    }
+                    saveToHistory(word);
+                });
+            }
+            
+            if (currentWords.length === 0) {
+                alert('请输入单词或选择历史单词！');
                 return;
             }
 
-            // 保存到历史记录
-            saveToHistory(word);
-
-            wordDisplay.textContent = word;
+            // 重置索引
+            currentWordIndex = 0;
+            
+            // 显示第一个单词
+            displayCurrentWord();
+            
+            // 显示/隐藏切换按钮
+            if (currentWords.length > 1) {
+                switchButton.classList.add('active');
+                wordIndicator.classList.add('active');
+            } else {
+                switchButton.classList.remove('active');
+                wordIndicator.classList.remove('active');
+            }
+            
             inputScreen.style.display = 'none';
             displayScreen.classList.add('active');
-            
-            // 清除旋转状态
             wordDisplay.classList.remove('vertical');
+        }
+
+        function displayCurrentWord() {
+            wordDisplay.textContent = currentWords[currentWordIndex];
+            wordIndicator.textContent = `${currentWordIndex + 1}/${currentWords.length}`;
+        }
+
+        function switchWord() {
+            if (currentWords.length <= 1) return;
+            
+            currentWordIndex = (currentWordIndex + 1) % currentWords.length;
+            displayCurrentWord();
         }
 
         function goBack() {
             displayScreen.classList.remove('active');
             inputScreen.style.display = 'block';
             wordInput.value = '';
-            historySelect.value = '';
+            
+            // 取消所有选中
+            const checkboxes = historyCheckboxes.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateSelectedCount();
+            
             wordInput.focus();
         }
 
