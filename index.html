@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>英语单词展示器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .input-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .input-screen h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .display-screen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .display-screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .word-display {
+            font-size: min(15vw, 15vh);
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 1.2;
+            word-wrap: break-word;
+            word-break: break-word;
+            max-width: 90vw;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .back-button:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 竖屏模式 */
+        @media (orientation: portrait) {
+            .word-display {
+                font-size: min(18vw, 20vh);
+                max-width: 85vw;
+            }
+            
+            .input-screen h1 {
+                font-size: 24px;
+            }
+
+            input[type="text"], button {
+                font-size: 18px;
+            }
+        }
+
+        /* 横屏模式 */
+        @media (orientation: landscape) {
+            .word-display {
+                font-size: min(12vw, 25vh);
+                max-width: 80vw;
+            }
+
+            .display-screen {
+                padding: 15px;
+            }
+
+            .back-button {
+                top: 15px;
+                left: 15px;
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        /* 小屏横屏 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .word-display {
+                font-size: min(10vw, 30vh);
+            }
+
+            .back-button {
+                top: 10px;
+                left: 10px;
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .display-screen {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-screen" id="inputScreen">
+            <h1>📚 输入英语单词</h1>
+            <div class="input-group">
+                <input type="text" id="wordInput" placeholder="请输入单词..." autocomplete="off">
+            </div>
+            <button onclick="showWord()">展示单词</button>
+        </div>
+
+        <div class="display-screen" id="displayScreen">
+            <button class="back-button" onclick="goBack()">← 返回</button>
+            <div class="word-display" id="wordDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        const wordInput = document.getElementById('wordInput');
+        const inputScreen = document.getElementById('inputScreen');
+        const displayScreen = document.getElementById('displayScreen');
+        const wordDisplay = document.getElementById('wordDisplay');
+
+        wordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                showWord();
+            }
+        });
+
+        function showWord() {
+            const word = wordInput.value.trim();
+            
+            if (word === '') {
+                alert('请输入一个单词！');
+                return;
+            }
+
+            wordDisplay.textContent = word;
+            inputScreen.style.display = 'none';
+            displayScreen.classList.add('active');
+        }
+
+        function goBack() {
+            displayScreen.classList.remove('active');
+            inputScreen.style.display = 'block';
+            wordInput.value = '';
+            wordInput.focus();
+        }
+    </script>
+</body>
+</html>
