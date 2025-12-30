@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>蚂蚁单词</title>
+    <title>英语单词展示器</title>
     <style>
         * {
             margin: 0;
@@ -178,6 +178,63 @@
             color: #667eea;
             margin-bottom: 30px;
             font-size: 28px;
+        }
+
+        .history-section {
+            margin-bottom: 25px;
+        }
+
+        .history-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        select {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select option {
+            padding: 10px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider::before {
+            margin-right: 10px;
+        }
+
+        .divider::after {
+            margin-left: 10px;
         }
 
         .input-group {
@@ -433,6 +490,15 @@
     <div class="container">
         <div class="input-screen" id="inputScreen">
             <h1>📚 输入英语单词</h1>
+            
+            <div class="history-section" id="historySection" style="display: none;">
+                <div class="history-label">最近使用的单词</div>
+                <select id="historySelect" onchange="selectFromHistory()">
+                    <option value="">选择历史单词...</option>
+                </select>
+                <div class="divider">或</div>
+            </div>
+            
             <div class="input-group">
                 <input type="text" id="wordInput" placeholder="请输入单词..." autocomplete="off">
             </div>
@@ -451,6 +517,66 @@
         const inputScreen = document.getElementById('inputScreen');
         const displayScreen = document.getElementById('displayScreen');
         const wordDisplay = document.getElementById('wordDisplay');
+        const historySection = document.getElementById('historySection');
+        const historySelect = document.getElementById('historySelect');
+        
+        const MAX_HISTORY = 20;
+        let wordHistory = [];
+
+        // 页面加载时读取历史记录
+        function loadHistory() {
+            const stored = localStorage.getItem('wordHistory');
+            if (stored) {
+                wordHistory = JSON.parse(stored);
+                updateHistorySelect();
+            }
+        }
+
+        // 更新下拉框
+        function updateHistorySelect() {
+            historySelect.innerHTML = '<option value="">选择历史单词...</option>';
+            
+            if (wordHistory.length > 0) {
+                historySection.style.display = 'block';
+                wordHistory.forEach(word => {
+                    const option = document.createElement('option');
+                    option.value = word;
+                    option.textContent = word;
+                    historySelect.appendChild(option);
+                });
+            } else {
+                historySection.style.display = 'none';
+            }
+        }
+
+        // 保存单词到历史记录
+        function saveToHistory(word) {
+            // 移除重复的单词（如果存在）
+            wordHistory = wordHistory.filter(w => w.toLowerCase() !== word.toLowerCase());
+            
+            // 添加到开头
+            wordHistory.unshift(word);
+            
+            // 限制数量
+            if (wordHistory.length > MAX_HISTORY) {
+                wordHistory = wordHistory.slice(0, MAX_HISTORY);
+            }
+            
+            // 保存到localStorage
+            localStorage.setItem('wordHistory', JSON.stringify(wordHistory));
+            
+            // 更新下拉框
+            updateHistorySelect();
+        }
+
+        // 从历史记录选择
+        function selectFromHistory() {
+            const selectedWord = historySelect.value;
+            if (selectedWord) {
+                wordInput.value = selectedWord;
+                showWord();
+            }
+        }
 
         wordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -466,21 +592,31 @@
                 return;
             }
 
+            // 保存到历史记录
+            saveToHistory(word);
+
             wordDisplay.textContent = word;
             inputScreen.style.display = 'none';
             displayScreen.classList.add('active');
+            
+            // 清除旋转状态
+            wordDisplay.classList.remove('vertical');
         }
 
         function goBack() {
             displayScreen.classList.remove('active');
             inputScreen.style.display = 'block';
             wordInput.value = '';
+            historySelect.value = '';
             wordInput.focus();
         }
 
         function toggleOrientation() {
             wordDisplay.classList.toggle('vertical');
         }
+
+        // 页面加载时初始化
+        loadHistory();
     </script>
 </body>
 </html>
