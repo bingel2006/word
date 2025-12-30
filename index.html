@@ -99,7 +99,7 @@
         }
 
         .word-display {
-            font-size: min(15vw, 15vh);
+            font-size: min(25vw, 25vh);
             font-weight: bold;
             color: white;
             text-align: center;
@@ -109,6 +109,13 @@
             max-width: 90vw;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             animation: fadeIn 0.5s ease-in;
+            transition: all 0.3s ease;
+        }
+
+        .word-display.vertical {
+            transform: rotate(90deg);
+            max-width: 85vh;
+            white-space: nowrap;
         }
 
         @keyframes fadeIn {
@@ -124,14 +131,15 @@
 
         .back-button {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.3);
             color: white;
             border: 2px solid white;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 30px;
             cursor: pointer;
             backdrop-filter: blur(10px);
             font-weight: bold;
@@ -142,11 +150,42 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
+        .rotate-button {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 20px;
+            font-size: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+            z-index: 10;
+            line-height: 1;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rotate-button:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
         /* 竖屏模式 */
         @media (orientation: portrait) {
             .word-display {
-                font-size: min(18vw, 20vh);
+                font-size: min(28vw, 30vh);
                 max-width: 85vw;
+            }
+
+            .word-display.vertical {
+                font-size: min(28vw, 30vh);
+                max-width: 85vh;
             }
             
             .input-screen h1 {
@@ -161,8 +200,13 @@
         /* 横屏模式 */
         @media (orientation: landscape) {
             .word-display {
-                font-size: min(12vw, 25vh);
+                font-size: min(18vw, 35vh);
                 max-width: 80vw;
+            }
+
+            .word-display.vertical {
+                font-size: min(18vw, 35vh);
+                max-width: 80vh;
             }
 
             .display-screen {
@@ -170,24 +214,43 @@
             }
 
             .back-button {
-                top: 15px;
-                left: 15px;
-                padding: 10px 20px;
-                font-size: 14px;
+                bottom: 20px;
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+
+            .rotate-button {
+                top: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
             }
         }
 
         /* 小屏横屏 */
         @media (orientation: landscape) and (max-height: 500px) {
             .word-display {
-                font-size: min(10vw, 30vh);
+                font-size: min(15vw, 40vh);
+            }
+
+            .word-display.vertical {
+                font-size: min(15vw, 40vh);
+                max-width: 75vh;
             }
 
             .back-button {
-                top: 10px;
-                left: 10px;
-                padding: 8px 16px;
-                font-size: 13px;
+                bottom: 15px;
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .rotate-button {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
             }
 
             .display-screen {
@@ -208,6 +271,7 @@
 
         <div class="display-screen" id="displayScreen">
             <button class="back-button" onclick="goBack()">← 返回</button>
+            <button class="rotate-button" onclick="toggleOrientation()" title="切换方向">⤸</button>
             <div class="word-display" id="wordDisplay"></div>
         </div>
     </div>
@@ -242,6 +306,10 @@
             inputScreen.style.display = 'block';
             wordInput.value = '';
             wordInput.focus();
+        }
+
+        function toggleOrientation() {
+            wordDisplay.classList.toggle('vertical');
         }
     </script>
 </body>
