@@ -892,33 +892,35 @@
         }
 
         // 检查匹配（使用 Vercel 代理接口，无密钥）
-        async function checkMatch(english, userChinese) {
-            if (!userChinese.trim()) return false;
+async function checkMatch(english, userChinese) {
+    if (!userChinese.trim()) return false;
 
-            try {
-                const response = await fetch(`/api/translate?text=${encodeURIComponent(english)}`);
-                if (!response.ok) {
-                    console.error('Proxy status:', response.status);
-                    throw new Error('Proxy failed');
-                }
-                
-                const data = await response.json();
-                if (data.error) {
-                    console.error('Proxy error:', data.error);
-                    return false;
-                }
-
-                const translated = data.translated;
-                const normTrans = normalizeText(translated);
-                const normUser  = normalizeText(userChinese);
-
-                return normTrans === normUser || 
-                       (normTrans.length > 1 && (normUser.includes(normTrans) || normTrans.includes(normUser)));
-            } catch (e) {
-                console.error('翻译代理失败:', e);
-                return false;
-            }
+    try {
+        const response = await fetch(`/api/translate?text=${encodeURIComponent(english)}`);
+        if (!response.ok) {
+            console.error('Proxy status:', response.status);
+            throw new Error('Proxy failed');
         }
+        
+        const data = await response.json();
+        if (data.error) {
+            console.error('Proxy error:', data.error);
+            return false;
+        }
+
+        // 修改这里：用 data.translation
+        const translated = data.translation || '';
+
+        const normTrans = normalizeText(translated);
+        const normUser  = normalizeText(userChinese);
+
+        return normTrans === normUser || 
+               (normTrans.length > 1 && (normUser.includes(normTrans) || normTrans.includes(normUser)));
+    } catch (e) {
+        console.error('翻译代理失败:', e);
+        return false;
+    }
+}
 
         const wordInput = document.getElementById('wordInput');
         const inputScreen = document.getElementById('inputScreen');
