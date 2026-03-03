@@ -21,6 +21,12 @@ module.exports = async (req, res) => {
   if (!text) {
     return res.status(400).json({ error: 'Missing text parameter' });
   }
+  // 新增：自动提取开头的连续英文单词（忽略大小写）
+  let sourceText = text.trim();
+  const englishMatch = sourceText.match(/^[a-zA-Z]+/i);
+  if (englishMatch) {
+    sourceText = englishMatch[0];
+  }
 
   // 【关键修复 1】：使用 .trim() 和 .replace() 强行清理 Vercel 环境变量中可能存在的空格、换行或误加的引号
   const secretId = (process.env.TENCENT_SECRET_ID || '').replace(/['"]/g, '').trim();
