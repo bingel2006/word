@@ -1,8 +1,14 @@
 // api/translate.js
 const crypto = require('crypto');
 
+// 严格遵守 RFC3986 的 URL 编码函数（腾讯云 V1 签名强制要求）
+function rfc3986Encode(str) {
+  return encodeURIComponent(str)
+    .replace(/[!*'()]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
 module.exports = async (req, res) => {
-  // 设置 CORS 跨域头
+  // 设置 CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -11,21 +17,17 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
   const { text } = req.query;
   if (!text) {
     return res.status(400).json({ error: 'Missing text parameter' });
   }
 
-  const secretId = process.env.TENCENT_SECRET_ID;
-  const secretKey = process.env.TENCENT_SECRET_KEY;
+  // 【关键修复 1】：使用 .trim() 和 .replace() 强行清理 Vercel 环境变量中可能存在的空格、换行或误加的引号
+  const secretId = (process.env.TENCENT_SECRET_ID || '').replace(/['"]/g, '').trim();
+  const secretKey = (process.env.TENCENT_SECRET_KEY || '').replace(/['"]/g, '').trim();
 
   if (!secretId || !secretKey) {
-    console.error('Missing Tencent credentials in environment variables');
-    return res.status(500).json({ error: 'Server configuration error' });
+    return res.status(500).json({ error: 'Server configuration error: Credentials missing' });
   }
 
   try {
@@ -45,33 +47,36 @@ module.exports = async (req, res) => {
       SourceText: text
     };
 
-    // 1. 签名步骤：参数排序后直接拼接，【禁止进行 URL 编码】
+    // 1. 生成签名原文字符串（必须按字典序，绝对不能被 Encode）
     const signQuery = Object.keys(params)
       .sort()
       .map(key => `${key}=${params[key]}`)
       .join('&');
 
-    // 2. 拼接签名原文字符串：不能有换行符，且 URI 是 /
     const stringToSign = `GETtmt.tencentcloudapi.com/?${signQuery}`;
 
-    // 3. HMAC-SHA1 加密：直接使用 secretKey，不需要加上 '&'
+    // 2. HMAC-SHA1 加密
     const signature = crypto
       .createHmac('sha1', secretKey)
       .update(stringToSign)
       .digest('base64');
 
-    // 将计算出的签名加入参数对象
     params.Signature = signature;
 
-    // 4. 发起真实请求：此时必须用 URLSearchParams 将所有参数和签名进行 URL 编码
-    const query = new URLSearchParams(params).toString();
-    const url = `https://tmt.tencentcloudapi.com/?${query}`;
+    // 【关键修复 2】：废弃 URLSearchParams，自己使用严格的 RFC3986 拼接请求 URL
+    // 因为 URLSearchParams 会把空格转为 "+" 号，而腾讯云要求空格必须转为 "%20"
+    const finalQueryString = Object.keys(params)
+      .map(key => `${key}=${rfc3986Encode(params[key])}`)
+      .join('&');
 
+    const url = `https://tmt.tencentcloudapi.com/?${finalQueryString}`;
+
+    // 3. 发送请求
     const response = await fetch(url);
     const data = await response.json();
 
-    // 检查腾讯云返回体内部的报错
     if (data.Response && data.Response.Error) {
+      console.error('Tencent API Error:', data.Response.Error);
       return res.status(400).json({ error: 'Translation failed', tencentError: data.Response.Error });
     }
 
@@ -82,7 +87,7 @@ module.exports = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Translation API error:', error);
+    console.error('API Error:', error);
     return res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 };
