@@ -745,12 +745,78 @@
                 padding: 10px;
             }
         }
+
+        /* 新增动画样式 */
+        @keyframes cowRun {
+            0% {
+                left: -220px;
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            20% {
+                transform: translateY(-15px) rotate(3deg) scale(1.05);
+            }
+            40% {
+                transform: translateY(10px) rotate(-2deg) scale(1.1);
+            }
+            60% {
+                transform: translateY(-12px) rotate(4deg) scale(1.08);
+            }
+            80% {
+                transform: translateY(8px) rotate(-3deg) scale(1.05);
+            }
+            100% {
+                left: calc(100vw + 220px);
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+        }
+
+        .cow-run {
+            animation: cowRun 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+        }
+
+        #cowImg {
+            display: none;
+            position: absolute;
+            bottom: 25%;
+            width: 200px;
+            height: auto;
+            z-index: 5;
+        }
+
+        #wasteImg {
+            display: none;
+            position: absolute;
+            width: 160px;
+            height: auto;
+            z-index: 5;
+        }
+
+        @keyframes wasteFly {
+            0% { 
+                transform: scale(0.2) translate(-50%, -50%); 
+                top: 10%; 
+                left: 50%; 
+                opacity: 0; 
+            }
+            80% { 
+                transform: scale(1.8) translate(-50%, -50%);  
+                opacity: 1; 
+            }
+            100% { 
+                transform: scale(1.5) translate(-50%, -50%);  
+                top: 50%; 
+                left: 50%; 
+            }
+        }
+
+        .waste-fly {
+            animation: wasteFly 2.5s ease-out forwards;
+        }
     </style>
 </head>
 <body>
     <!-- 自然元素背景 -->
     <div class="nature-elements">
-        <!-- 植物 -->
         <div class="plant">🌿</div>
         <div class="plant">🌱</div>
         <div class="plant">🌿</div>
@@ -758,17 +824,14 @@
         <div class="plant">🌿</div>
         <div class="plant">🌱</div>
         
-        <!-- 蚂蚁 -->
         <div class="ant">🐜</div>
         <div class="ant">🐜</div>
         <div class="ant">🐜</div>
         <div class="ant">🐜</div>
         
-        <!-- 蝴蝶 -->
         <div class="butterfly">🦋</div>
         <div class="butterfly">🦋</div>
         
-        <!-- 花朵 -->
         <div class="flower">🌸</div>
         <div class="flower">🌺</div>
         <div class="flower">🌼</div>
@@ -788,7 +851,7 @@
             </div>
             
             <div class="input-group">
-                <input type="text" id="wordInput" placeholder="请输入单词（多个单词用逗号分隔）..." autocomplete="off">
+                <input type="text" id="wordInput" placeholder="请输入英语中文如 apple苹果（多个用逗号分隔）..." autocomplete="off">
             </div>
             <button onclick="showWord()">展示单词</button>
         </div>
@@ -799,6 +862,8 @@
             <button class="rotate-button" onclick="toggleOrientation()" title="切换方向">⤸</button>
             <div class="word-indicator" id="wordIndicator">1/1</div>
             <div class="word-display" id="wordDisplay" onclick="showWordDetail()"></div>
+            <img id="cowImg" src="cow.png" alt="牦牛">
+            <img id="wasteImg" src="waste.png" alt="牛粪">
         </div>
 
         <!-- 单词详情弹窗 -->
@@ -816,6 +881,45 @@
     </div>
 
     <script>
+        // 清洗文本（去标点、空格、全半角统一，用于宽松匹配）
+        function normalizeText(str) {
+            if (!str) return '';
+            return str
+                .replace(/[\s，。！？、；：“”‘’（）【】《》]/g, '')
+                .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+                .toLowerCase()
+                .trim();
+        }
+
+        // 检查匹配（使用 Vercel 代理接口，无密钥）
+        async function checkMatch(english, userChinese) {
+            if (!userChinese.trim()) return false;
+
+            try {
+                const response = await fetch(`/api/translate?text=${encodeURIComponent(english)}`);
+                if (!response.ok) {
+                    console.error('Proxy status:', response.status);
+                    throw new Error('Proxy failed');
+                }
+                
+                const data = await response.json();
+                if (data.error) {
+                    console.error('Proxy error:', data.error);
+                    return false;
+                }
+
+                const translated = data.translated;
+                const normTrans = normalizeText(translated);
+                const normUser  = normalizeText(userChinese);
+
+                return normTrans === normUser || 
+                       (normTrans.length > 1 && (normUser.includes(normTrans) || normTrans.includes(normUser)));
+            } catch (e) {
+                console.error('翻译代理失败:', e);
+                return false;
+            }
+        }
+
         const wordInput = document.getElementById('wordInput');
         const inputScreen = document.getElementById('inputScreen');
         const displayScreen = document.getElementById('displayScreen');
@@ -899,56 +1003,60 @@
             return Array.from(checkboxes).map(cb => cb.value);
         }
 
+        // 解析输入对
+        function parsePair(str) {
+            const englishMatch = str.match(/^[a-zA-Z]+/);
+            if (englishMatch) {
+                const english = englishMatch[0];
+                const chinese = str.substring(english.length).trim();
+                return { english, chinese };
+            } else {
+                return { english: str, chinese: '' };
+            }
+        }
+
         wordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 showWord();
             }
         });
 
-        function showWord() {
-            // 获取选中的历史单词
+        async function showWord() {
             const selectedWords = getSelectedWords();
             
-            // 获取手动输入的单词（支持逗号分隔）
             const inputText = wordInput.value.trim();
-            let inputWords = [];
+            let inputPairs = [];
             
             if (inputText !== '') {
-                // 用逗号分隔，并清理空格
-                inputWords = inputText.split(',')
-                    .map(word => word.trim())
-                    .filter(word => word !== '');
+                inputPairs = inputText.split(',')
+                    .map(pair => parsePair(pair.trim()))
+                    .filter(obj => obj.english !== '');
             }
             
-            // 合并单词列表
-            currentWords = [];
+            currentWords = [
+                ...selectedWords.map(word => ({ english: word, chinese: '' })),
+                ...inputPairs
+            ];
             
-            if (selectedWords.length > 0) {
-                currentWords = [...selectedWords];
-            }
-            
-            if (inputWords.length > 0) {
-                // 添加输入的单词到列表，并保存到历史
-                inputWords.forEach(word => {
-                    if (!currentWords.some(w => w.toLowerCase() === word.toLowerCase())) {
-                        currentWords.push(word);
-                    }
-                    saveToHistory(word);
-                });
-            }
+            const seen = new Set();
+            currentWords = currentWords.filter(obj => {
+                const low = obj.english.toLowerCase();
+                if (seen.has(low)) return false;
+                seen.add(low);
+                return true;
+            });
             
             if (currentWords.length === 0) {
                 alert('请输入单词或选择历史单词！');
                 return;
             }
 
-            // 重置索引
+            inputPairs.forEach(obj => saveToHistory(obj.english));
+
             currentWordIndex = 0;
             
-            // 显示第一个单词
-            displayCurrentWord();
+            await displayCurrentWord();
             
-            // 显示/隐藏切换按钮
             if (currentWords.length > 1) {
                 switchButton.classList.add('active');
                 wordIndicator.classList.add('active');
@@ -962,9 +1070,17 @@
             wordDisplay.classList.remove('vertical');
         }
 
-        function displayCurrentWord() {
-            wordDisplay.textContent = currentWords[currentWordIndex];
+        async function displayCurrentWord() {
+            const obj = currentWords[currentWordIndex];
+            wordDisplay.textContent = obj.english;
             wordIndicator.textContent = `${currentWordIndex + 1}/${currentWords.length}`;
+
+            const transDiv = document.getElementById('translationDisplay');
+            if (transDiv) {
+                transDiv.textContent = '';
+            }
+
+            await triggerAnimation();
         }
 
         function switchWord() {
@@ -979,7 +1095,6 @@
             inputScreen.style.display = 'block';
             wordInput.value = '';
             
-            // 取消所有选中
             const checkboxes = historyCheckboxes.querySelectorAll('input[type="checkbox"]');
             checkboxes.forEach(cb => cb.checked = false);
             updateSelectedCount();
@@ -991,18 +1106,76 @@
             wordDisplay.classList.toggle('vertical');
         }
 
+        // 触发动画
+        async function triggerAnimation() {
+            const obj = currentWords[currentWordIndex];
+            if (obj.chinese) {
+                const isMatch = await checkMatch(obj.english, obj.chinese);
+                if (isMatch) {
+                    showTranslation(obj.chinese);
+                    animateCow();
+                } else {
+                    animateWaste();
+                }
+            }
+        }
+
+        // 显示翻译
+        function showTranslation(chinese) {
+            let transDiv = document.getElementById('translationDisplay');
+            if (!transDiv) {
+                transDiv = document.createElement('div');
+                transDiv.id = 'translationDisplay';
+                transDiv.style.position = 'absolute';
+                transDiv.style.bottom = '20px';
+                transDiv.style.left = '50%';
+                transDiv.style.transform = 'translateX(-50%)';
+                transDiv.style.color = 'white';
+                transDiv.style.fontSize = '14px';
+                transDiv.style.zIndex = '10';
+                displayScreen.appendChild(transDiv);
+            }
+            transDiv.textContent = chinese;
+        }
+
+        // 动画牦牛
+        function animateCow() {
+            const cow = document.getElementById('cowImg');
+            cow.style.display = 'block';
+            cow.style.left = '-220px';
+            cow.classList.add('cow-run');
+            cow.addEventListener('animationend', () => {
+                cow.style.display = 'none';
+                cow.classList.remove('cow-run');
+            }, { once: true });
+        }
+
+        // 动画牛粪
+        function animateWaste() {
+            const waste = document.getElementById('wasteImg');
+            waste.style.display = 'block';
+            waste.style.top = '10%';
+            waste.style.left = '50%';
+            waste.style.transform = 'scale(0.1) translate(-50%, -50%)';
+            waste.classList.add('waste-fly');
+            waste.addEventListener('animationend', () => {
+                setTimeout(() => {
+                    waste.style.display = 'none';
+                    waste.classList.remove('waste-fly');
+                }, 1000);
+            }, { once: true });
+        }
+
         // 显示单词详情
         async function showWordDetail() {
-            const word = currentWords[currentWordIndex];
+            const word = currentWords[currentWordIndex].english;
             modalWord.textContent = word;
             modalBody.innerHTML = '<div class="loading">加载中...</div>';
             modal.classList.add('active');
             
             try {
-                // 尝试直接调用 API
                 let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
                 
-                // 如果直接调用失败，使用 CORS 代理
                 if (!response.ok) {
                     response = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)}`);
                 }
@@ -1029,7 +1202,6 @@
             const wordData = data[0];
             let html = '';
 
-            // 音标和发音
             if (wordData.phonetics && wordData.phonetics.length > 0) {
                 html += '<div class="phonetic-section">';
                 
@@ -1046,7 +1218,6 @@
                 html += '</div>';
             }
 
-            // 释义
             if (wordData.meanings && wordData.meanings.length > 0) {
                 wordData.meanings.forEach(meaning => {
                     html += '<div class="meaning-section">';
@@ -1065,7 +1236,6 @@
                         });
                     }
                     
-                    // 同义词
                     if (meaning.synonyms && meaning.synonyms.length > 0) {
                         html += '<div class="synonyms"><strong>同义词：</strong>';
                         meaning.synonyms.slice(0, 5).forEach(syn => {
@@ -1074,7 +1244,6 @@
                         html += '</div>';
                     }
                     
-                    // 反义词
                     if (meaning.antonyms && meaning.antonyms.length > 0) {
                         html += '<div class="antonyms"><strong>反义词：</strong>';
                         meaning.antonyms.slice(0, 5).forEach(ant => {
