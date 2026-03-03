@@ -1,9 +1,8 @@
-// api/translate.js
+// api/translate.js - 最终修复版（Nonce int + 严格 stringToSign）
 
 const crypto = require('crypto');
 
 module.exports = async (req, res) => {
-  // 处理 CORS 预检请求
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -12,39 +11,29 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  // 只允许 GET
   if (req.method !== 'GET') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { text } = req.query;
-
-  if (!text || typeof text !== 'string' || text.trim() === '') {
+  if (!text) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    return res.status(400).json({ error: 'Missing or invalid "text" parameter' });
+    return res.status(400).json({ error: 'Missing text' });
   }
 
   const secretId = process.env.TENCENT_SECRET_ID;
   const secretKey = process.env.TENCENT_SECRET_KEY;
 
   if (!secretId || !secretKey) {
-    console.error('Missing Tencent Cloud credentials in environment variables');
+    console.error('Missing credentials');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    return res.status(500).json({ 
-      error: 'Server configuration error',
-      message: 'Tencent credentials not found'
-    });
+    return res.status(500).json({ error: 'Credentials missing' });
   }
 
   try {
     const timestamp = Math.floor(Date.now() / 1000);
-    
-    // 修正：Nonce 必须是整数（腾讯要求 int 类型）
-    // 生成 10 位随机正整数（1000000000 ~ 9999999999）
-    const nonce = Math.floor(1000000000 + Math.random() * 9000000000);
-
-    console.log('Generated Nonce (int):', nonce);  // 日志确认是数字
+    const nonce = Math.floor(1000000000 + Math.random() * 9000000000); // 10位 int
 
     const params = {
       Action: 'TextTranslate',
@@ -52,80 +41,71 @@ module.exports = async (req, res) => {
       Region: 'ap-guangzhou',
       SecretId: secretId,
       Timestamp: timestamp,
-      Nonce: nonce,                // 这里是 number 类型
+      Nonce: nonce,
       Source: 'en',
       Target: 'zh',
       ProjectId: 0,
       SourceText: text.trim()
     };
 
-    // 排序 key（用于签名）
-    const sortedKeys = Object.keys(params).sort((a, b) => a.localeCompare(b));
+    // 排序
+    const sortedKeys = Object.keys(params).sort();
 
-    // canonicalQueryString（用于签名）
+    // canonicalQuery（签名用）
     const canonicalQuery = sortedKeys
       .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
       .join('&');
 
-    // stringToSign（严格四行，最后空行）
-    const stringToSign = `GET
-tmt.tencentcloudapi.com
-/?${canonicalQuery}
+    // stringToSign - 腾讯官方严格格式（注意换行和空行）
+    const stringToSign = [
+      'GET',
+      'tmt.tencentcloudapi.com',
+      `/?${canonicalQuery}`,
+      ''  // 必须空行
+    ].join('\n');
 
-`;
+    console.log('stringToSign for debug:', stringToSign.replace(/\n/g, '\\n')); // 日志显示换行
 
-    console.log('stringToSign:', stringToSign);  // 调试用
-
-    // 计算 HMAC-SHA1 签名
+    // 签名
     const hmac = crypto.createHmac('sha1', secretKey + '&');
     hmac.update(stringToSign);
     const signature = hmac.digest('base64');
 
-    console.log('Generated Signature:', signature);
-
-    // 加到 params
     params.Signature = signature;
 
-    // 构建 URL（包含 Signature）
+    // 构建 URL
     const apiUrl = new URL('https://tmt.tencentcloudapi.com/');
     sortedKeys.forEach(key => {
       apiUrl.searchParams.append(key, params[key]);
     });
     apiUrl.searchParams.append('Signature', signature);
 
-    console.log('Final request URL:', apiUrl.toString().substring(0, 400) + '...');
+    console.log('Final URL:', apiUrl.toString().substring(0, 400) + '...');
 
-    const response = await fetch(apiUrl.toString());
+    const response = await fetch(apiUrl);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Tencent HTTP error:', response.status, errorText);
-      throw new Error(`Tencent returned ${response.status}: ${errorText}`);
+      const errText = await response.text();
+      console.error('Tencent HTTP error:', response.status, errText);
+      throw new Error(`HTTP ${response.status}`);
     }
 
     const data = await response.json();
 
     if (data.Response && data.Response.TargetText) {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(200).json({
-        translated: data.Response.TargetText.trim()
-      });
-    } else {
-      console.error('Tencent API error response:', JSON.stringify(data, null, 2));
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      return res.status(500).json({
-        error: 'Translation failed',
-        tencentError: data.Response?.Error || 'Unknown error',
-        details: data
-      });
+      return res.status(200).json({ translated: data.Response.TargetText.trim() });
     }
-  } catch (err) {
-    console.error('translate.js error:', err.message, err.stack);
+
+    console.error('Tencent error:', JSON.stringify(data));
     res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(500).json({
-      error: 'Server error',
-      message: err.message
+      error: 'Translation failed',
+      tencentError: data.Response?.Error
     });
+  } catch (err) {
+    console.error('translate error:', err.message, err.stack);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(500).json({ error: 'Server error', message: err.message });
   }
 };
