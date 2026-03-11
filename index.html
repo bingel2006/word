@@ -1006,10 +1006,11 @@ async function checkMatch(english, userChinese) {
         }
 
         // 解析输入对
-        async function parsePair(str) {
+    async function parsePair(str) {
+
         str = str.trim();
 
-        // 1 判断是否以英文开头（例如 apple苹果）
+        // 1 如果是英文开头
         const englishMatch = str.match(/^[a-zA-Z]+/);
 
         if (englishMatch) {
@@ -1018,45 +1019,43 @@ async function checkMatch(english, userChinese) {
             return { english, chinese };
         }
 
-        // 2 如果是纯中文（例如 苹果）
+        // 2 如果是中文
         if (/^[\u4e00-\u9fa5]+$/.test(str)) {
+
             try {
-                const response = await fetch(`/api/translate?text=${encodeURIComponent(str)}`);
 
-                if (!response.ok) {
-                    throw new Error("translate api failed");
-                }
+                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(str)}&langpair=zh|en`;
 
-                const data = await response.json();
+                const res = await fetch(url);
+                const data = await res.json();
 
-                if (data && data.translation) {
+                const english = data.responseData.translatedText
+                    .split(" ")[0]
+                    .toLowerCase();
 
-                    // 有些翻译API会返回多个词，这里取第一个
-                    let english = data.translation.trim();
+                return {
+                    english: english,
+                    chinese: str
+                };
 
-                    // 如果返回的是多个词（如 "apple, fruit"）
-                    english = english.split(/[,，]/)[0].trim();
+            } catch (err) {
 
-                    return {
-                        english: english,
-                        chinese: str
-                    };
-                }
+                console.error("翻译失败", err);
 
-            } catch (error) {
-                console.error("中文转英文失败:", error);
+                return {
+                    english: "",
+                    chinese: str
+                };
             }
-
-            // 翻译失败时不加入
-            return { english: "", chinese: str };
         }
 
-        // 3 其它情况（直接当作英文）
+        // 3 其它情况
         return {
             english: str,
             chinese: ""
         };
     }
+
 
 
         wordInput.addEventListener('keypress', (e) => {
