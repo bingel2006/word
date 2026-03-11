@@ -1006,16 +1006,38 @@ async function checkMatch(english, userChinese) {
         }
 
         // 解析输入对
-        function parsePair(str) {
+        async function parsePair(str) {
+            // 判断是否以英文字母开头
             const englishMatch = str.match(/^[a-zA-Z]+/);
+            
             if (englishMatch) {
+                // 原有逻辑：处理 "apple苹果" 这种格式
                 const english = englishMatch[0];
                 const chinese = str.substring(english.length).trim();
                 return { english, chinese };
+            } else if (/^[\u4e00-\u9fa5]+/.test(str)) {
+                // 新增逻辑：如果输入的是纯中文，调用代理接口翻译成英文
+                try {
+                    const response = await fetch(`/api/translate?text=${encodeURIComponent(str)}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.translation) {
+                            // 返回翻译后的英文，以及用户输入的中文
+                            return { english: data.translation.trim(), chinese: str };
+                        }
+                    }
+                } catch (e) {
+                    console.error('中文转英文翻译失败:', e);
+                }
+                return { english: str, chinese: '' };
             } else {
                 return { english: str, chinese: '' };
             }
         }
+
+
+
+
 
         wordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -1030,9 +1052,14 @@ async function checkMatch(english, userChinese) {
             let inputPairs = [];
             
             if (inputText !== '') {
-                inputPairs = inputText.split(',')
-                    .map(pair => parsePair(pair.trim()))
-                    .filter(obj => obj.english !== '');
+                // 将输入按逗号分割并清理两端空格
+                const rawPairs = inputText.split(',')
+                    .map(pair => pair.trim())
+                    .filter(str => str !== '');
+                
+                // 使用 Promise.all 等待所有单词的异步解析（和可能的翻译）完成
+                inputPairs = await Promise.all(rawPairs.map(str => parsePair(str)));
+                inputPairs = inputPairs.filter(obj => obj.english !== '');
             }
             
             currentWords = [
