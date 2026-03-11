@@ -1007,36 +1007,56 @@ async function checkMatch(english, userChinese) {
 
         // 解析输入对
         async function parsePair(str) {
-            // 判断是否以英文字母开头
-            const englishMatch = str.match(/^[a-zA-Z]+/);
-            
-            if (englishMatch) {
-                // 原有逻辑：处理 "apple苹果" 这种格式
-                const english = englishMatch[0];
-                const chinese = str.substring(english.length).trim();
-                return { english, chinese };
-            } else if (/^[\u4e00-\u9fa5]+/.test(str)) {
-                // 新增逻辑：如果输入的是纯中文，调用代理接口翻译成英文
-                try {
-                    const response = await fetch(`/api/translate?text=${encodeURIComponent(str)}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.translation) {
-                            // 返回翻译后的英文，以及用户输入的中文
-                            return { english: data.translation.trim(), chinese: str };
-                        }
-                    }
-                } catch (e) {
-                    console.error('中文转英文翻译失败:', e);
-                }
-                return { english: str, chinese: '' };
-            } else {
-                return { english: str, chinese: '' };
-            }
+        str = str.trim();
+
+        // 1 判断是否以英文开头（例如 apple苹果）
+        const englishMatch = str.match(/^[a-zA-Z]+/);
+
+        if (englishMatch) {
+            const english = englishMatch[0];
+            const chinese = str.substring(english.length).trim();
+            return { english, chinese };
         }
 
+        // 2 如果是纯中文（例如 苹果）
+        if (/^[\u4e00-\u9fa5]+$/.test(str)) {
+            try {
+                const response = await fetch(`/api/translate?text=${encodeURIComponent(str)}`);
 
+                if (!response.ok) {
+                    throw new Error("translate api failed");
+                }
 
+                const data = await response.json();
+
+                if (data && data.translation) {
+
+                    // 有些翻译API会返回多个词，这里取第一个
+                    let english = data.translation.trim();
+
+                    // 如果返回的是多个词（如 "apple, fruit"）
+                    english = english.split(/[,，]/)[0].trim();
+
+                    return {
+                        english: english,
+                        chinese: str
+                    };
+                }
+
+            } catch (error) {
+                console.error("中文转英文失败:", error);
+            }
+
+            // 翻译失败时不加入
+            return { english: "", chinese: str };
+        }
+
+        // 3 其它情况（直接当作英文）
+        return {
+            english: str,
+            chinese: ""
+        };
+    }
 
 
         wordInput.addEventListener('keypress', (e) => {
