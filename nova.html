@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova · 一台跟着孩子成长的 AI 学习系统</title>
+<meta name="description" content="不是聊天机器人,不是题库订阅。Nova 是一套完全本地运行的 AI 学习陪伴系统,6 位 AI 老师 + 记忆系统 + 错误类型识别,数据永远在你家电脑上。">
+<style>
+  /* ────────────── 设计 token ────────────── */
+  :root {
+    --bg:        #faf9f7;
+    --bg-soft:   #f3f1ea;
+    --surface:   #ffffff;
+    --ink:       #2c2c2a;
+    --ink-soft:  #5f5e5a;
+    --ink-mute:  #888780;
+    --border:    #e6e4dd;
+    --accent:    #534ab7;       /* 紫,Nova 主色 */
+    --accent-50: #eeedfe;
+    --accent-warm:#D85A30;      /* coral,用于"问题"标签 */
+    --accent-warm-50:#FAECE7;
+    --teal:      #1D9E75;
+    --teal-50:   #E1F5EE;
+    --amber:     #BA7517;
+    --amber-50:  #FAEEDA;
+    --pink:      #993556;
+    --blue:      #185FA5;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-50); color: var(--accent); }
+
+  /* ────────────── 通用容器 ────────────── */
+  .wrap     { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  .narrow   { max-width: 760px;  margin: 0 auto; padding: 0 24px; }
+  section   { padding: 80px 0; }
+
+  /* ────────────── Nav ────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(250, 249, 247, 0.85);
+    backdrop-filter: saturate(180%) blur(10px);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 14px; padding-bottom: 14px;
+  }
+  nav .logo {
+    font-weight: 500; font-size: 17px; color: var(--ink);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  nav .logo-mark {
+    width: 22px; height: 22px;
+    background: var(--accent); border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: white; font-size: 13px; font-weight: 500;
+  }
+  nav ul {
+    display: flex; gap: 28px; margin: 0; padding: 0; list-style: none;
+  }
+  nav a {
+    color: var(--ink-soft); text-decoration: none;
+    font-size: 14px; transition: color 0.15s;
+  }
+  nav a:hover { color: var(--accent); }
+  @media (max-width: 720px) {
+    nav ul { display: none; }
+  }
+
+  /* ────────────── Hero ────────────── */
+  .hero { padding: 120px 0 80px; text-align: center; }
+  .hero .eyebrow {
+    display: inline-block;
+    background: var(--accent-50); color: var(--accent);
+    padding: 5px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+    margin-bottom: 28px; letter-spacing: 0.02em;
+  }
+  .hero h1 {
+    font-size: 52px; line-height: 1.2; font-weight: 500;
+    margin: 0 0 20px; letter-spacing: -0.02em;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--accent);
+  }
+  .hero .sub {
+    font-size: 19px; color: var(--ink-soft);
+    max-width: 680px; margin: 0 auto 40px; line-height: 1.65;
+  }
+  .hero .cta-row {
+    display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  }
+  .btn {
+    display: inline-block; padding: 12px 24px; font-size: 15px;
+    border-radius: 10px; text-decoration: none; font-weight: 500;
+    transition: all 0.15s; cursor: pointer; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: #423aa0; border-color: #423aa0; }
+  .btn-ghost   { background: transparent; color: var(--ink); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--bg-soft); border-color: var(--ink-mute); }
+
+  .hero .trust {
+    margin-top: 56px; display: flex; gap: 32px; justify-content: center;
+    flex-wrap: wrap; font-size: 13px; color: var(--ink-mute);
+  }
+  .hero .trust .dot { color: var(--teal); margin-right: 6px; }
+  @media (max-width: 720px) {
+    .hero { padding: 60px 0 50px; }
+    .hero h1 { font-size: 36px; }
+    .hero .sub { font-size: 17px; }
+  }
+
+  /* ────────────── 共用标题 ────────────── */
+  .section-eyebrow {
+    color: var(--accent); font-size: 13px; font-weight: 500;
+    letter-spacing: 0.04em; margin-bottom: 12px; text-transform: uppercase;
+  }
+  .section-title {
+    font-size: 36px; line-height: 1.25; font-weight: 500;
+    margin: 0 0 16px; letter-spacing: -0.01em;
+  }
+  .section-lead {
+    font-size: 17px; color: var(--ink-soft); max-width: 640px; line-height: 1.7;
+  }
+  @media (max-width: 720px) {
+    .section-title { font-size: 28px; }
+  }
+
+  /* ────────────── 适合谁 ────────────── */
+  .audience { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .audience-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    margin-top: 48px;
+  }
+  .aud-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px;
+  }
+  .aud-card .icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 16px;
+  }
+  .aud-card h3 {
+    font-size: 17px; font-weight: 500; margin: 0 0 8px;
+  }
+  .aud-card p {
+    font-size: 14px; color: var(--ink-soft); margin: 0; line-height: 1.7;
+  }
+  @media (max-width: 760px) {
+    .audience-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ────────────── 解决什么问题 ────────────── */
+  .problems { background: var(--bg); }
+  .prob-list {
+    margin-top: 48px;
+    display: grid; gap: 1px;
+    background: var(--border); border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .prob-row {
+    background: var(--surface);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+  .prob-row > div { padding: 28px 32px; }
+  .prob-row .pain {
+    background: var(--accent-warm-50);
+  }
+  .prob-row .pain h4 {
+    color: var(--accent-warm); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 10px;
+  }
+  .prob-row .pain p {
+    font-size: 16px; color: var(--ink); margin: 0; line-height: 1.6;
+  }
+  .prob-row .fix h4 {
+    color: var(--teal); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 10px;
+  }
+  .prob-row .fix p {
+    font-size: 16px; color: var(--ink); margin: 0; line-height: 1.6;
+  }
+  @media (max-width: 720px) {
+    .prob-row { grid-template-columns: 1fr; }
+  }
+
+  /* ────────────── 6 位老师 ────────────── */
+  .teachers { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .teacher-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-top: 48px;
+  }
+  .t-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; transition: all 0.2s;
+  }
+  .t-card:hover {
+    border-color: var(--ink-mute); transform: translateY(-2px);
+  }
+  .t-card .head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  }
+  .t-card .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .t-card .name {
+    font-size: 16px; font-weight: 500; margin: 0;
+  }
+  .t-card .subject {
+    font-size: 12px; color: var(--ink-mute); margin: 2px 0 0;
+  }
+  .t-card .quote {
+    font-size: 14px; color: var(--ink-soft); line-height: 1.6;
+    font-style: italic; padding-left: 12px;
+    border-left: 2px solid var(--border);
+  }
+  .t-card.mentor .avatar    { background: var(--accent-50);     color: var(--accent); }
+  .t-card.english .avatar   { background: var(--amber-50);      color: var(--amber); }
+  .t-card.math .avatar      { background: #E6F1FB;              color: var(--blue); }
+  .t-card.physics .avatar   { background: var(--teal-50);       color: var(--teal); }
+  .t-card.chinese .avatar   { background: var(--accent-warm-50);color: var(--accent-warm); }
+  .t-card.psych .avatar     { background: #FBEAF0;              color: var(--pink); }
+
+  @media (max-width: 760px) {
+    .teacher-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .teacher-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ────────────── 误差类型识别(B 方向亮点) ────────────── */
+  .b-direction { background: var(--bg-soft); }
+  .b-banner {
+    background: var(--surface); border-radius: 18px;
+    border: 1px solid var(--border);
+    padding: 40px 44px; margin-top: 48px;
+  }
+  .b-banner h3 {
+    font-size: 22px; font-weight: 500; margin: 0 0 12px;
+  }
+  .b-banner .lead {
+    color: var(--ink-soft); font-size: 16px; margin: 0 0 28px;
+  }
+  .b-types {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    margin-top: 24px;
+  }
+  .b-type {
+    border-left: 3px solid; padding: 14px 16px;
+    background: var(--bg); border-radius: 6px;
+  }
+  .b-type:nth-child(1) { border-color: var(--accent-warm); }
+  .b-type:nth-child(2) { border-color: var(--amber); }
+  .b-type:nth-child(3) { border-color: var(--teal); }
+  .b-type:nth-child(4) { border-color: var(--blue); }
+  .b-type:nth-child(5) { border-color: var(--pink); }
+  .b-type .name {
+    font-size: 13px; font-weight: 500; margin: 0 0 6px;
+  }
+  .b-type .desc {
+    font-size: 12px; color: var(--ink-mute); margin: 0; line-height: 1.55;
+  }
+  @media (max-width: 880px) {
+    .b-types { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .b-types { grid-template-columns: 1fr; }
+    .b-banner { padding: 28px; }
+  }
+
+  /* ────────────── 知识图谱融入(v3.9) ────────────── */
+  .km-section { background: var(--bg); }
+  .km-grid {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px;
+    margin-top: 48px; align-items: stretch;
+  }
+  .km-left h3 {
+    font-size: 22px; font-weight: 500; margin: 0 0 14px;
+  }
+  .km-left p {
+    color: var(--ink-soft); font-size: 16px; line-height: 1.7;
+    margin: 0 0 16px;
+  }
+  .km-features { margin: 24px 0 0; padding: 0; list-style: none; }
+  .km-features li {
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: 28px 1fr; gap: 12px;
+    align-items: start;
+  }
+  .km-features li:last-child { border-bottom: 1px solid var(--border); }
+  .km-features .ico {
+    color: var(--accent); font-size: 16px; font-weight: 500;
+    line-height: 1.7;
+  }
+  .km-features .text strong {
+    display: block; font-size: 14px; font-weight: 500; color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .km-features .text span {
+    font-size: 13px; color: var(--ink-soft); line-height: 1.6;
+  }
+  .km-right {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px; line-height: 1.7;
+    overflow-x: auto;
+  }
+  .km-right .km-mock-title {
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    font-size: 12px; color: var(--ink-mute); margin-bottom: 14px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .km-right .km-line {
+    display: block; padding: 1px 0;
+  }
+  .km-right .km-h     { color: var(--accent);     font-weight: 500; }
+  .km-right .km-good  { color: var(--teal); }
+  .km-right .km-warn  { color: var(--accent-warm); }
+  .km-right .km-stale { color: var(--amber); }
+  .km-right .km-mute  { color: var(--ink-mute); }
+  .km-right .km-arrow { color: var(--accent); }
+
+  @media (max-width: 880px) {
+    .km-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .km-right { font-size: 12px; padding: 16px; }
+  }
+
+  /* ────────────── 怎么用 ────────────── */
+  .howto { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .step-list {
+    margin-top: 48px;
+    display: grid; gap: 20px;
+  }
+  .step-row {
+    display: grid; grid-template-columns: 80px 1fr; gap: 24px;
+    padding: 24px 0;
+  }
+  .step-row + .step-row {
+    border-top: 1px solid var(--border);
+  }
+  .step-num {
+    font-size: 36px; font-weight: 500; color: var(--accent);
+    line-height: 1; letter-spacing: -0.02em;
+  }
+  .step-content h4 {
+    font-size: 18px; font-weight: 500; margin: 0 0 8px;
+  }
+  .step-content p {
+    color: var(--ink-soft); font-size: 15px; margin: 0; line-height: 1.7;
+  }
+  .step-content .timeline {
+    color: var(--ink-mute); font-size: 13px; margin-top: 8px;
+  }
+
+  /* ────────────── 隐私 / 本地运行 ────────────── */
+  .privacy {
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+  }
+  .privacy-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 48px; margin-top: 40px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
+  }
+  .privacy-card .left h3 {
+    font-size: 24px; font-weight: 500; margin: 0 0 14px;
+  }
+  .privacy-card .left p {
+    color: var(--ink-soft); font-size: 16px; margin: 0; line-height: 1.7;
+  }
+  .privacy-bullets {
+    margin: 0; padding: 0; list-style: none;
+  }
+  .privacy-bullets li {
+    padding-left: 28px; position: relative; margin-bottom: 14px;
+    font-size: 15px; line-height: 1.6;
+  }
+  .privacy-bullets li::before {
+    content: ""; position: absolute; left: 0; top: 8px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--teal-50); border: 2px solid var(--teal);
+  }
+  @media (max-width: 760px) {
+    .privacy-card { grid-template-columns: 1fr; padding: 32px; }
+  }
+
+  /* ────────────── FAQ ────────────── */
+  .faq { background: var(--bg); }
+  .faq-list { margin-top: 40px; }
+  .faq-item {
+    border-bottom: 1px solid var(--border);
+    padding: 22px 0;
+  }
+  .faq-item summary {
+    font-size: 16px; font-weight: 500; cursor: pointer;
+    list-style: none; display: flex; justify-content: space-between;
+    align-items: center;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+"; font-size: 22px; color: var(--ink-mute);
+    transition: transform 0.2s; font-weight: 300;
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item p {
+    color: var(--ink-soft); margin: 14px 0 0; font-size: 15px; line-height: 1.7;
+  }
+
+  /* ────────────── Footer / CTA ────────────── */
+  .footer-cta {
+    text-align: center; padding: 96px 24px;
+    background: var(--ink); color: white;
+  }
+  .footer-cta h2 {
+    font-size: 36px; font-weight: 500; margin: 0 0 16px; letter-spacing: -0.01em;
+  }
+  .footer-cta p {
+    font-size: 17px; color: rgba(255,255,255,0.7); margin: 0 auto 32px; max-width: 520px;
+  }
+  .footer-cta .btn-primary {
+    background: white; color: var(--ink); border-color: white;
+  }
+  .footer-cta .btn-primary:hover {
+    background: var(--bg); border-color: var(--bg);
+  }
+  footer.foot {
+    background: var(--ink); color: rgba(255,255,255,0.5);
+    padding: 24px; font-size: 13px; text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  @media (max-width: 720px) {
+    .footer-cta h2 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav>
+  <div class="wrap">
+    <a href="#" class="logo">
+      <span class="logo-mark">N</span>
+      <span>Nova</span>
+    </a>
+    <ul>
+      <li><a href="#audience">适合谁</a></li>
+      <li><a href="#problems">解决什么</a></li>
+      <li><a href="#teachers">6 位老师</a></li>
+      <li><a href="#error-types">误差识别</a></li>
+      <li><a href="#km-graph">知识图谱</a></li>
+      <li><a href="#howto">怎么用</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="narrow">
+    <span class="eyebrow">完全本地运行 · 数据不上云</span>
+    <h1>一台<em>跟着孩子成长</em>的<br>AI 学习系统</h1>
+    <p class="sub">
+      不是聊天机器人,不是题库订阅,不是拍照搜题。
+      Nova 把 6 位有人格的 AI 老师、四层记忆系统、误差类型识别、知识图谱作战地图
+      装进你家电脑,陪孩子从小学到中学。
+    </p>
+    <div class="cta-row">
+      <a href="#howto" class="btn btn-primary">看看怎么用</a>
+      <a href="#problems" class="btn btn-ghost">为什么和别的不一样</a>
+    </div>
+    <div class="trust">
+      <span><span class="dot">●</span>本地运行</span>
+      <span><span class="dot">●</span>无需联网</span>
+      <span><span class="dot">●</span>无订阅费</span>
+      <span><span class="dot">●</span>数据完全私有</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ 适合谁 ═══════════════════ -->
+<section id="audience" class="audience">
+  <div class="wrap">
+    <div class="section-eyebrow">For whom</div>
+    <h2 class="section-title">适合什么样的家庭</h2>
+    <p class="section-lead">
+      不是所有人都需要 Nova。如果你正在为下面其中一类家庭操心,Nova 能帮上忙。
+    </p>
+    <div class="audience-grid">
+      <div class="aud-card">
+        <div class="icon" style="background: var(--accent-50); color: var(--accent);">📚</div>
+        <h3>K12 学龄家庭</h3>
+        <p>
+          孩子在 7-18 岁,正面临作业、错题、薄弱点反复纠缠。家长想帮,但工作忙;请家教,贵且不稳定。
+        </p>
+      </div>
+      <div class="aud-card">
+        <div class="icon" style="background: var(--teal-50); color: var(--teal);">🛡️</div>
+        <h3>看重隐私的家庭</h3>
+        <p>
+          不希望孩子的学习数据、错题、成长轨迹被互联网公司收集。所有内容只存在你家电脑里,可备份、可删除。
+        </p>
+      </div>
+      <div class="aud-card">
+        <div class="icon" style="background: var(--amber-50); color: var(--amber);">🎯</div>
+        <h3>注重过程的家庭</h3>
+        <p>
+          觉得"刷题量"不能解决问题,想知道孩子<em>为什么</em>错、错的是哪种类型,据此调整学习方式。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ 解决什么问题 ═══════════════════ -->
+<section id="problems" class="problems">
+  <div class="wrap">
+    <div class="section-eyebrow">Problems we solve</div>
+    <h2 class="section-title">3 个家长普遍头疼的问题</h2>
+    <p class="section-lead">
+      左边是常见焦虑,右边是 Nova 的做法——不靠"功能堆砌",靠根本性的差异化设计。
+    </p>
+    <div class="prob-list">
+
+      <div class="prob-row">
+        <div class="pain">
+          <h4>问题 1 · 焦虑型刷题陷阱</h4>
+          <p>孩子刷了一堆题,分数没上去。家长不知道哪里出问题,只能让 ta 再刷一遍。</p>
+        </div>
+        <div class="fix">
+          <h4>Nova 的做法</h4>
+          <p>对每道错题做"误差类型识别"——是概念混淆?还是计算错?还是迁移不出来?家长面板能看到一周分布。</p>
+        </div>
+      </div>
+
+      <div class="prob-row">
+        <div class="pain">
+          <h4>问题 2 · AI 不懂自家孩子的"系统位置"</h4>
+          <p>用 ChatGPT、豆包、文心,每次都要从零讲。孩子在哪个学科到了哪一步、哪些前置没掌握、哪些卡了好几天 —— AI 一概不知。</p>
+        </div>
+        <div class="fix">
+          <h4>Nova 的做法</h4>
+          <p>四层记忆 + 知识图谱融入。每位老师回答前自动读取该学科图谱,知道孩子哪些已掌握、哪些是"暗洞"、哪些停滞太久。讲解从此对症,不再千篇一律。</p>
+        </div>
+      </div>
+
+      <div class="prob-row">
+        <div class="pain">
+          <h4>问题 3 · 隐私和成本焦虑</h4>
+          <p>不想孩子的学习数据被采集训练,也不想再交一个月好几百的订阅费。</p>
+        </div>
+        <div class="fix">
+          <h4>Nova 的做法</h4>
+          <p>完全本地运行(基于本地 Ollama),无需联网。一次部署、永久使用,数据库就是你电脑上一个 SQLite 文件。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ 6 位老师 ═══════════════════ -->
+<section id="teachers" class="teachers">
+  <div class="wrap">
+    <div class="section-eyebrow">Multi-agent companions</div>
+    <h2 class="section-title">不是 1 个 AI,是 6 位有人格的老师</h2>
+    <p class="section-lead">
+      基于"社会脑"原理:人类用"人"来组织世界,不是用"功能"。
+      Nova 把传统的"43 个功能图标"重组为 6 位真实有人格的 AI 老师,
+      让学习从"用工具"变成"和老师在一起"。
+    </p>
+    <div class="teacher-grid">
+
+      <div class="t-card mentor">
+        <div class="head">
+          <div class="avatar">⬡</div>
+          <div>
+            <p class="name">小 N</p>
+            <p class="subject">主导师 · 中枢调度</p>
+          </div>
+        </div>
+        <p class="quote">"我记得你说过的事——上次提到的那个英语难点,要继续吗?"</p>
+      </div>
+
+      <div class="t-card english">
+        <div class="head">
+          <div class="avatar">📖</div>
+          <div>
+            <p class="name">Lily</p>
+            <p class="subject">英语 · 像姐姐</p>
+          </div>
+        </div>
+        <p class="quote">"You're getting closer! 来,我们再读一遍这段。"</p>
+      </div>
+
+      <div class="t-card math">
+        <div class="head">
+          <div class="avatar">📐</div>
+          <div>
+            <p class="name">顾老师</p>
+            <p class="subject">数学 · 严谨</p>
+          </div>
+        </div>
+        <p class="quote">"先别看答案,告诉我你怎么想的。哪一步卡住了?"</p>
+      </div>
+
+      <div class="t-card physics">
+        <div class="head">
+          <div class="avatar">🔬</div>
+          <div>
+            <p class="name">李老师</p>
+            <p class="subject">物理化学 · 实例驱动</p>
+          </div>
+        </div>
+        <p class="quote">"想象一下电梯下降的瞬间,你的脚底感觉到什么?"</p>
+      </div>
+
+      <div class="t-card chinese">
+        <div class="head">
+          <div class="avatar">📜</div>
+          <div>
+            <p class="name">苏老师</p>
+            <p class="subject">语文 · 慢与文学性</p>
+          </div>
+        </div>
+        <p class="quote">"这句话读三遍。第一遍读字面,第二遍读情绪,第三遍呢?"</p>
+      </div>
+
+      <div class="t-card psych">
+        <div class="head">
+          <div class="avatar">🌱</div>
+          <div>
+            <p class="name">小满</p>
+            <p class="subject">心理 · 安全屋</p>
+          </div>
+        </div>
+        <p class="quote">"听起来你今天有点累。要不,我们先不聊学习?"</p>
+      </div>
+
+    </div>
+    <p style="margin-top: 36px; font-size: 14px; color: var(--ink-mute); text-align: center;">
+      关系层独立(各自记得自己的对话),记忆层共享(共同了解这个学生)。
+      切换老师不会丢失上下文,问题专业了,小 N 还能自动转交给对应老师。
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════ 误差类型识别 ═══════════════════ -->
+<section id="error-types" class="b-direction">
+  <div class="wrap">
+    <div class="section-eyebrow">Error typing</div>
+    <h2 class="section-title">不是所有"错"都一样</h2>
+    <p class="section-lead">
+      这是 Nova v3.8 的新能力,也是把它和其他 AI 学习产品拉开距离的关键。
+      孩子点踩或纠正一次回答后,Nova 自动判断:这次失败属于哪种类型?
+      下一次同类题目出现时,老师会自动换一种讲法。
+    </p>
+
+    <div class="b-banner">
+      <h3>5 种失败类型,5 种对症讲法</h3>
+      <p class="lead">
+        家长面板能看到孩子最近 30 天"错的类型分布"——比"错了多少题"信息密度高一个量级。
+        不再用刷题量安慰自己,而是知道孩子真正薄弱在哪个维度。
+      </p>
+      <div class="b-types">
+        <div class="b-type">
+          <p class="name">概念混淆型</p>
+          <p class="desc">把动量和动能搞混。<br>下次会用对比表格 + 判别标志讲。</p>
+        </div>
+        <div class="b-type">
+          <p class="name">计算/数量级型</p>
+          <p class="desc">思路对、算错了或单位错。<br>下次直接示范每一步,标单位。</p>
+        </div>
+        <div class="b-type">
+          <p class="name">迁移失败型</p>
+          <p class="desc">原题会做、换包装就不会。<br>下次先抽出题目骨架,再做变式。</p>
+        </div>
+        <div class="b-type">
+          <p class="name">提取失败型</p>
+          <p class="desc">学过、暂时想不起来。<br>下次用引导提问让你自己回忆。</p>
+        </div>
+        <div class="b-type">
+          <p class="name">步骤错误型</p>
+          <p class="desc">顺序错或漏步骤。<br>下次把完整步骤编号 + ⚠️ 标记错点。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ 知识图谱融入(v3.9) ═══════════════════ -->
+<section id="km-graph" class="km-section">
+  <div class="wrap">
+    <div class="section-eyebrow">Knowledge graph integration</div>
+    <h2 class="section-title">让老师有一张作战地图</h2>
+    <p class="section-lead">
+      孩子在 Nova 里维护的"知识地图"不只是个完成度勾选表 ——
+      它是各科 AI 老师真正的<strong style="font-weight:500;color:var(--ink)">作战地图</strong>。
+      每位老师在回答前自动读取这张地图,知道孩子在该学科到了哪、哪些卡住了、还有什么暗洞。
+    </p>
+
+    <div class="km-grid">
+      <div class="km-left">
+        <h3>4 个能力,从孤岛到系统</h3>
+        <ul class="km-features">
+          <li>
+            <span class="ico">●</span>
+            <div class="text">
+              <strong>学习位置</strong>
+              <span>老师知道孩子在该学科里哪些已掌握、哪些在学、哪些没标过 —— 讲解时能联系已学的内容做类比</span>
+            </div>
+          </li>
+          <li>
+            <span class="ico">●</span>
+            <div class="text">
+              <strong>系统缺口检测</strong>
+              <span>未学但被其他节点依赖的"暗洞" —— 老师会主动建议:"这个我看你还没标过状态,我们要不要先确认一下?"</span>
+            </div>
+          </li>
+          <li>
+            <span class="ico">●</span>
+            <div class="text">
+              <strong>停滞检测</strong>
+              <span>学习中但 14+ 天没动过的节点 —— 老师会问:"这个你卡住了吗?"</span>
+            </div>
+          </li>
+          <li>
+            <span class="ico">●</span>
+            <div class="text">
+              <strong>反向闭环 · 推荐 + 确认</strong>
+              <span>老师判断孩子真的掌握了某节点后,会推荐更新状态。但<strong style="font-weight:500;color:var(--ink)">必须用户拍板</strong> —— 老师不能擅自修改孩子的成绩单</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="km-right">
+        <div class="km-mock-title">老师 prompt 实际注入示例</div>
+<span class="km-line km-h">【数学知识图谱 · 共 6 个节点】</span>
+<span class="km-line"><span class="km-good">已掌握:</span> 一元一次方程, 实数体系</span>
+<span class="km-line">学习中: 函数概念, 二次函数</span>
+<span class="km-line"><span class="km-warn">⚠️ 系统缺口:</span> 二次函数对称轴, 导数</span>
+<span class="km-line"><span class="km-stale">💤 停滞节点:</span> 二次函数</span>
+<span class="km-line">&nbsp;</span>
+<span class="km-line km-h">【本次问题命中节点: 二次函数对称轴】</span>
+<span class="km-line"><span class="km-warn">⚠️ 未掌握前置:</span> 二次函数(学习中)</span>
+<span class="km-line"><span class="km-arrow">→</span> 讲解时请先确认这些前置</span>
+      </div>
+    </div>
+
+    <p style="margin-top: 36px; font-size: 14px; color: var(--ink-mute); text-align: center; max-width: 680px; margin-left: auto; margin-right: auto;">
+      孩子问"二次函数的对称轴怎么求",老师不再只回答这道题 ——
+      它知道孩子还没掌握"二次函数"本身,会先确认前置;它知道孩子停滞了 14 天,会主动问"卡在哪了?"
+      <strong style="font-weight:500;color:var(--ink)">这才是系统性的学习陪伴</strong>。
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════ 怎么用 ═══════════════════ -->
+<section id="howto" class="howto">
+  <div class="wrap">
+    <div class="section-eyebrow">How it works</div>
+    <h2 class="section-title">日常怎么用</h2>
+    <p class="section-lead">
+      Nova 不是一个"打开就用"的工具,是一个"陪着孩子用一天"的系统。下面是典型的一天。
+    </p>
+    <div class="step-list">
+
+      <div class="step-row">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h4>早晨 · 看看今天</h4>
+          <p>对小 N 说"帮我看看今天的任务"。它会读取昨晚批改过的错题、未完成的复习项、今天的目标,生成清单。</p>
+          <p class="timeline">3-5 分钟,一杯水的功夫</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h4>学习中 · 卡住就问</h4>
+          <p>遇到不会的题,直接拍照或文字问。问数学问题,小 N 会主动转给顾老师;问英语,转给 Lily。讲解会自动调用孩子之前的笔记和错题做对比。</p>
+          <p class="timeline">随时,无次数限制</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h4>反馈 · 不对就点踩</h4>
+          <p>老师讲得不对症?点踩 → 弹出"为什么不对"的 4 个选项(搞混了/算错了/我忘了/步骤错)。一点就行,不用打字。Nova 记下这次失败的类型,下次换种讲法。</p>
+          <p class="timeline">1 秒钟,但累积价值巨大</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h4>晚上 · 自动复盘</h4>
+          <p>系统在后台自动:整理今日错题、提炼可复用技能、识别遗忘曲线、给家长面板更新数据。孩子睡觉,Nova 不睡。</p>
+          <p class="timeline">无人值守,自动完成</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <h4>偶尔 · 老师建议更新地图</h4>
+          <p>当老师明确判断孩子真的掌握了某个节点(能独立解释、举例、解决变式题),会在右下角弹个小卡片:"建议把'二次函数'标为已掌握 —— 学生能独立配方推导对称轴公式"。点确认才更新,老师不能擅自改。</p>
+          <p class="timeline">几秒钟,一周可能 2-3 次</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">06</div>
+        <div class="step-content">
+          <h4>家长视角 · 周末看仪表盘</h4>
+          <p>不是看分数,是看"误差类型分布"和"知识图谱进度"。比如"这周 8 道错题里,67% 是计算错误"——告诉你孩子是真的不懂还是粗心,完全不同的应对方式。</p>
+          <p class="timeline">每周一次,5 分钟</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ 隐私 ═══════════════════ -->
+<section class="privacy">
+  <div class="wrap">
+    <div class="section-eyebrow">Privacy by design</div>
+    <h2 class="section-title">为什么要本地运行</h2>
+    <p class="section-lead">
+      把 AI 嵌入孩子的学习全过程,意味着会产生大量敏感数据:
+      错题、薄弱点、情绪波动、和老师的对话……这些数据不该上传给任何人。
+    </p>
+    <div class="privacy-card">
+      <div class="left">
+        <h3>数据完全在你手里</h3>
+        <p>
+          Nova 基于本地 Ollama 运行,所有 AI 推理在你电脑上完成。
+          所有对话、错题、记忆都存在一个 SQLite 文件里——你可以随时打开看、备份、迁移到新电脑、彻底删除。
+        </p>
+      </div>
+      <ul class="privacy-bullets">
+        <li>所有 AI 推理 100% 本地完成,不联网</li>
+        <li>没有云端账号,没有数据上传</li>
+        <li>SQLite 单文件存储,可手动备份</li>
+        <li>开源代码,逻辑可审查</li>
+        <li>无订阅费用,一次部署</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FAQ ═══════════════════ -->
+<section class="faq">
+  <div class="narrow">
+    <div class="section-eyebrow">FAQ</div>
+    <h2 class="section-title">常见疑问</h2>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>需要什么样的电脑?</summary>
+        <p>
+          一台能跑 Ollama 的 Windows / Mac / Linux 即可。推荐 16GB 内存以上,有独立显卡(8GB 显存以上)体验最好。
+          基础款 MacBook Air M2 / 普通带 RTX 显卡的台式机都能跑。
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>孩子多大可以用?</summary>
+        <p>
+          建议 7 岁以上,有基本的拼读和键盘/语音输入能力即可。
+          7-10 岁建议家长陪同使用前 1-2 周,熟悉流程后孩子可以独立使用。
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>需要每月付费吗?</summary>
+        <p>
+          不需要。Nova 一次部署,永久使用。本地运行的 AI 模型(Ollama)也是免费的。
+          唯一的成本是初始部署 + 你电脑的电费。
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>能换其他 AI 模型吗?</summary>
+        <p>
+          可以。Nova 默认用 qwen3:14b(中文表现好),你可以换成 Llama 3、Gemma、DeepSeek 等任何 Ollama 支持的模型。
+          高端硬件可以跑 70b 级别,低端硬件可以用 7b/3b。
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>孩子不喜欢和 AI 对话怎么办?</summary>
+        <p>
+          这是 Nova 设计的核心问题。我们用 6 位有人格的老师代替单一聊天框,降低"对着 AI 说话"的尴尬感。
+          每位老师有独特说话方式,孩子会自然产生偏好。心理小满老师不评价、只倾听,适合不想被说教的时候。
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary>家长可以看到孩子和 AI 说什么吗?</summary>
+        <p>
+          可以,但建议有边界。Nova 提供家长面板查看学习进度、错题、误差类型分布,
+          但孩子和心理小满的对话默认不展示给家长——这是刻意的安全屋设计。
+          家长能看到趋势,但不监听具体倾诉。
+        </p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER CTA ═══════════════════ -->
+<section class="footer-cta">
+  <h2>把 AI 真正嵌入孩子的成长</h2>
+  <p>不是工具,是陪伴者。一次部署,陪孩子从小学到中学。</p>
+  <div class="cta-row" style="display: inline-flex; gap: 12px;">
+    <a href="#howto" class="btn btn-primary">看看怎么开始</a>
+  </div>
+</section>
+
+<footer class="foot">
+  Nova · 个人成长 AI 操作系统 · 本地运行 · 数据私有
+</footer>
+
+</body>
+</html>

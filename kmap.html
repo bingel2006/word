@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>奥威尔号 · 阿力的星际远征 — 让学习成为旅程</title>
+<meta name="description" content="把学科地图重写成一段太空探险——120 个节点、15 章主线、20 个前沿实验室，让孩子追着故事去学。" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ───────────────────────── DESIGN TOKENS ───────────────────────── */
+:root{
+  --bg:        #07080c;
+  --bg-2:      #0d0e14;
+  --bg-3:      #14161e;
+  --ink:       #f5f3ef;
+  --ink-2:     #c8c6c0;
+  --ink-3:     #8a8881;
+  --line:      rgba(245,243,239,.10);
+  --line-2:    rgba(245,243,239,.18);
+  --sun:       #fb923c;
+  --sun-2:     #ffb163;
+  --plasma:    #38bdf8;
+  --leaf:      #4ade80;
+  --amber:     #fbbf24;
+  --display:   'Fraunces', ui-serif, Georgia, serif;
+  --body:      'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --mono:      'JetBrains Mono', ui-monospace, monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+body{font-size:17px;line-height:1.55;letter-spacing:.005em}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--sun);color:var(--bg)}
+
+/* ─────────── grain + vignette overlay (atmosphere) ─────────── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:
+    radial-gradient(ellipse at 50% 0%, transparent 0%, rgba(0,0,0,.35) 85%),
+    radial-gradient(ellipse at 50% 100%, transparent 0%, rgba(0,0,0,.45) 85%);
+}
+body::after{
+  content:'';position:fixed;inset:-50%;pointer-events:none;z-index:2;
+  opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ───────────────── TYPOGRAPHY ───────────────── */
+.display{
+  font-family:var(--display);
+  font-weight:400;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "wdth" 100;
+  letter-spacing:-.03em;
+  line-height:.95;
+}
+.display em{font-style:italic;font-variation-settings:"opsz" 144,"SOFT" 100,"wdth" 100;color:var(--sun)}
+.kicker{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--sun);
+  font-weight:500;
+}
+.sub{
+  font-family:var(--body);
+  color:var(--ink-2);
+  font-size:19px;
+  line-height:1.5;
+  font-weight:300;
+  letter-spacing:.005em;
+}
+
+/* ─────────────── NAVIGATION ─────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 32px;
+  background:rgba(7,8,12,.6);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border-bottom:1px solid var(--line);
+}
+nav .brand{font-family:var(--display);font-size:18px;font-weight:500;letter-spacing:-.01em}
+nav .brand .dot{color:var(--sun)}
+nav ul{display:flex;gap:32px;list-style:none;font-size:13px;color:var(--ink-2);font-weight:400}
+nav ul a{transition:color .2s}
+nav ul a:hover{color:var(--ink)}
+@media(max-width:740px){nav ul{display:none}}
+
+/* ─────────────── LAYOUT WRAPPERS ─────────────── */
+section{position:relative;z-index:3}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+.wrap-narrow{max-width:920px;margin:0 auto;padding:0 32px}
+
+/* ─────────────── HERO ─────────────── */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding-top:88px}
+.hero-inner{text-align:center;max-width:1100px;padding:0 32px;position:relative;z-index:5}
+.hero h1{font-size:clamp(56px, 9vw, 132px);margin-bottom:32px}
+.hero h1 .line{display:block;opacity:0;transform:translateY(40px);animation:rise .9s cubic-bezier(.2,.7,.2,1) forwards}
+.hero h1 .line:nth-child(1){animation-delay:.1s}
+.hero h1 .line:nth-child(2){animation-delay:.3s}
+.hero p.lead{
+  font-size:clamp(18px,2.2vw,22px);color:var(--ink-2);font-weight:300;
+  max-width:620px;margin:0 auto 48px;opacity:0;animation:rise .9s cubic-bezier(.2,.7,.2,1) .6s forwards
+}
+.hero .meta{
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--ink-3);
+  opacity:0;animation:rise .9s cubic-bezier(.2,.7,.2,1) .9s forwards;
+}
+.hero .meta span{margin:0 12px}
+.hero .meta i{display:inline-block;width:4px;height:4px;background:var(--sun);border-radius:50%;vertical-align:middle;margin-right:8px}
+
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+
+/* hero starfield + ship */
+.stars{position:absolute;inset:0;z-index:1;pointer-events:none}
+.star{position:absolute;background:#fff;border-radius:50%;animation:tw 4s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.3}50%{opacity:1}}
+
+.orbit-svg{position:absolute;width:min(900px,80vw);height:min(900px,80vw);left:50%;top:55%;transform:translate(-50%,-50%);z-index:2;opacity:.35;pointer-events:none}
+.orbit-svg .ring{fill:none;stroke:var(--ink);stroke-width:.5;opacity:.4}
+.orbit-svg .ship{transform-origin:center}
+.orbit-svg .ship-track{animation:orbit 60s linear infinite}
+.orbit-svg .ship-track-2{animation:orbit 120s linear infinite reverse}
+@keyframes orbit{to{transform:rotate(360deg)}}
+
+.scroll-cue{
+  position:absolute;left:50%;bottom:48px;transform:translateX(-50%);z-index:5;
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--ink-3);
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  opacity:0;animation:rise 1s ease 1.4s forwards;
+}
+.scroll-cue .bar{width:1px;height:36px;background:linear-gradient(to bottom,var(--ink-3),transparent);animation:cueline 2.4s ease-in-out infinite}
+@keyframes cueline{0%,100%{transform:scaleY(.4);transform-origin:top}50%{transform:scaleY(1)}}
+
+/* ─────────────── SECTION STRUCTURE ─────────────── */
+.section{padding:160px 0;position:relative}
+.section.tight{padding:120px 0}
+.section.alt{background:linear-gradient(180deg,transparent 0%, var(--bg-2) 8%, var(--bg-2) 92%, transparent 100%)}
+
+.section-head{margin-bottom:80px;max-width:880px}
+.section-head .kicker{margin-bottom:24px;display:inline-block}
+.section-head h2{font-size:clamp(40px,5.5vw,80px);margin-bottom:28px}
+.section-head .sub{max-width:680px}
+
+/* fade-up on scroll */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d2{transition-delay:.1s}
+.reveal.d3{transition-delay:.2s}
+.reveal.d4{transition-delay:.3s}
+.reveal.d5{transition-delay:.4s}
+
+/* ─────────────── PROBLEM SECTION (contrast) ─────────────── */
+.contrast{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:32px}
+.contrast > div{background:var(--bg);padding:64px 48px}
+.contrast .col-bad{color:var(--ink-3)}
+.contrast .col-bad .label{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:#ef4444;margin-bottom:24px}
+.contrast .col-good .label{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--leaf);margin-bottom:24px}
+.contrast h3{font-family:var(--display);font-size:32px;font-weight:400;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px}
+.contrast .col-good h3 em{font-style:italic;color:var(--sun)}
+.contrast p{font-size:16px;line-height:1.6;color:var(--ink-2)}
+.contrast .col-bad p{color:var(--ink-3)}
+@media(max-width:760px){.contrast{grid-template-columns:1fr}}
+
+/* ─────────────── MECHANISM DIAGRAM ─────────────── */
+.mech{position:relative;padding:80px 0 40px}
+.mech-grid{
+  display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:center;
+  max-width:1080px;margin:0 auto;
+}
+.mech-node{
+  border:1px solid var(--line-2);border-radius:18px;padding:32px 28px;background:var(--bg-2);
+  position:relative;transition:transform .4s ease, border-color .4s ease;
+}
+.mech-node:hover{transform:translateY(-4px);border-color:var(--line-2)}
+.mech-node .label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-3);margin-bottom:14px;text-transform:uppercase}
+.mech-node h4{font-family:var(--display);font-size:22px;font-weight:500;letter-spacing:-.01em;margin-bottom:10px}
+.mech-node p{font-size:14px;color:var(--ink-2);line-height:1.5}
+.mech-node .swatch{position:absolute;top:18px;right:18px;width:10px;height:10px;border-radius:50%}
+.mech-node.story{border-color:var(--sun);background:linear-gradient(180deg,rgba(251,146,60,.06),transparent)}
+.mech-node.story h4{color:var(--sun-2)}
+.mech-node.lab{background:linear-gradient(180deg,rgba(167,139,250,.04),transparent)}
+.mech-node.lab h4{color:#c4b5fd}
+.mech-arrow{
+  display:flex;justify-content:center;color:var(--ink-3);font-family:var(--mono);font-size:11px;letter-spacing:.15em;padding:0 8px;
+  flex-direction:column;align-items:center;gap:8px;min-width:80px;
+}
+.mech-arrow .line{width:48px;height:1px;background:linear-gradient(to right,transparent,var(--ink-3),transparent)}
+@media(max-width:900px){
+  .mech-grid{grid-template-columns:1fr;gap:16px}
+  .mech-arrow{flex-direction:row;padding:0;min-width:0}
+  .mech-arrow .line{width:1px;height:24px;background:linear-gradient(to bottom,transparent,var(--ink-3),transparent)}
+}
+
+/* ─────────────── ACT CARDS (三幕) ─────────────── */
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.act{
+  background:var(--bg-2);border:1px solid var(--line);border-radius:24px;padding:40px 36px;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1), border-color .5s ease;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;min-height:520px;
+}
+.act:hover{transform:translateY(-8px);border-color:var(--line-2)}
+.act::before{
+  content:'';position:absolute;inset:0;opacity:0;transition:opacity .6s;pointer-events:none;
+  background:radial-gradient(circle at 30% 0%, rgba(251,146,60,.12), transparent 50%);
+}
+.act:hover::before{opacity:1}
+.act .num{font-family:var(--display);font-size:84px;font-weight:300;letter-spacing:-.04em;line-height:1;color:var(--sun);opacity:.85;margin-bottom:8px}
+.act .name{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--ink-3);margin-bottom:20px}
+.act h3{font-family:var(--display);font-size:34px;font-weight:400;letter-spacing:-.02em;line-height:1.1;margin-bottom:16px}
+.act .age{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ink-3);margin-bottom:24px}
+.act p{font-size:15px;line-height:1.65;color:var(--ink-2);margin-bottom:28px}
+.act .chapters{list-style:none;margin-top:auto;border-top:1px solid var(--line);padding-top:20px}
+.act .chapters li{font-size:13px;color:var(--ink-2);padding:6px 0;display:flex;gap:12px;font-variant-numeric:tabular-nums}
+.act .chapters li::before{content:attr(data-ch);color:var(--ink-3);font-family:var(--mono);font-size:11px;width:42px;flex-shrink:0;letter-spacing:.05em}
+@media(max-width:980px){.acts{grid-template-columns:1fr}.act{min-height:auto}}
+
+/* ─────────────── LAB GRID ─────────────── */
+.lab-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  margin-top:48px;
+}
+.lab{
+  background:var(--bg);padding:32px 24px;
+  display:flex;flex-direction:column;gap:8px;justify-content:flex-end;min-height:160px;
+  transition:background .5s, transform .5s;cursor:default;position:relative;
+}
+.lab:hover{background:var(--bg-3);transform:scale(1.02);z-index:2}
+.lab .emo{font-size:28px;margin-bottom:10px;line-height:1}
+.lab .nm{font-family:var(--display);font-size:18px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.lab .tag{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--ink-3)}
+@media(max-width:1080px){.lab-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:780px){.lab-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ─────────────── COMMANDER FEATURE ─────────────── */
+.commander{
+  display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:center;
+  margin-top:32px;
+}
+.commander-portrait{
+  aspect-ratio:1/1;border-radius:32px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(251,146,60,.20) 0%, transparent 55%),
+    linear-gradient(135deg,#1a1a22,#0a0a10);
+  border:1px solid var(--line-2);
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.commander-portrait::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(2px 2px at 22% 18%, white, transparent),
+    radial-gradient(1.5px 1.5px at 67% 32%, white, transparent),
+    radial-gradient(1px 1px at 88% 60%, white, transparent),
+    radial-gradient(1.5px 1.5px at 14% 78%, white, transparent),
+    radial-gradient(1px 1px at 42% 82%, white, transparent),
+    radial-gradient(2px 2px at 75% 88%, white, transparent);
+  opacity:.6;
+}
+.commander-portrait .glyph{
+  font-size:180px;line-height:1;filter:drop-shadow(0 12px 60px rgba(251,146,60,.35));
+  position:relative;z-index:2;
+}
+.commander-portrait .name-tag{
+  position:absolute;bottom:24px;left:24px;right:24px;
+  display:flex;justify-content:space-between;align-items:end;font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ink-3);
+}
+.commander-portrait .name-tag .b{color:var(--sun)}
+.commander-body .role{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--sun);margin-bottom:24px;text-transform:uppercase}
+.commander-body h2{font-family:var(--display);font-size:clamp(40px,5vw,68px);font-weight:400;letter-spacing:-.03em;line-height:1;margin-bottom:24px}
+.commander-body h2 em{font-style:italic;color:var(--sun)}
+.commander-body p{font-size:17px;color:var(--ink-2);line-height:1.65;margin-bottom:18px;max-width:520px}
+.commander-quote{
+  border-left:2px solid var(--sun);padding:16px 0 16px 24px;margin-top:32px;
+  font-family:var(--display);font-style:italic;font-size:19px;color:var(--ink);
+  font-weight:300;line-height:1.45;
+}
+@media(max-width:900px){.commander{grid-template-columns:1fr;gap:48px}}
+
+/* ─────────────── TEACHERS BAND ─────────────── */
+.teachers{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:20px;overflow:hidden;margin-top:64px;
+}
+.teacher{
+  background:var(--bg);padding:36px 20px 28px;text-align:center;
+  display:flex;flex-direction:column;gap:8px;
+  transition:background .4s;position:relative;
+}
+.teacher.cmd{background:linear-gradient(180deg,rgba(251,146,60,.10),var(--bg) 80%)}
+.teacher:hover{background:var(--bg-3)}
+.teacher.cmd:hover{background:linear-gradient(180deg,rgba(251,146,60,.18),var(--bg) 80%)}
+.teacher .emo{font-size:38px;line-height:1;margin-bottom:8px}
+.teacher .nm{font-family:var(--display);font-size:18px;font-weight:500;letter-spacing:-.01em}
+.teacher .sub-info{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--ink-3)}
+.teacher.cmd .nm{color:var(--sun-2)}
+.teacher .new-badge{
+  position:absolute;top:10px;right:10px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  color:var(--sun);border:1px solid var(--sun);padding:2px 6px;border-radius:4px;
+}
+@media(max-width:780px){.teachers{grid-template-columns:repeat(3,1fr)}}
+
+/* ─────────────── STATS ─────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);margin-top:32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{background:var(--bg);padding:64px 36px;text-align:left}
+.stat .num{font-family:var(--display);font-size:clamp(60px,7vw,96px);font-weight:300;letter-spacing:-.04em;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat .num .plus{color:var(--sun);font-style:italic;font-weight:400}
+.stat .label{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--ink-3);margin-top:18px;text-transform:uppercase}
+.stat .desc{font-size:14px;color:var(--ink-2);margin-top:14px;line-height:1.55}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.stats{grid-template-columns:1fr}}
+
+/* ─────────────── PRINCIPLES (脑科学三条) ─────────────── */
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin-top:64px}
+.principle h4{font-family:var(--display);font-size:24px;font-weight:500;letter-spacing:-.01em;margin-bottom:12px}
+.principle h4 .num{font-family:var(--mono);font-size:11px;color:var(--sun);letter-spacing:.2em;display:block;margin-bottom:18px}
+.principle p{font-size:15px;color:var(--ink-2);line-height:1.7}
+@media(max-width:820px){.principles{grid-template-columns:1fr;gap:36px}}
+
+/* ─────────────── CLOSING / CTA ─────────────── */
+.closing{
+  text-align:center;padding:200px 24px 180px;position:relative;
+}
+.closing::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(251,146,60,.10), transparent 50%);
+  pointer-events:none;
+}
+.closing h2{font-size:clamp(48px,7vw,110px);max-width:1000px;margin:0 auto 40px;position:relative;z-index:2}
+.closing p{font-size:18px;color:var(--ink-2);max-width:580px;margin:0 auto 56px;position:relative;z-index:2;font-weight:300}
+.cta-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;position:relative;z-index:2}
+.btn{
+  display:inline-block;padding:16px 32px;border-radius:100px;font-size:14px;font-weight:500;letter-spacing:.02em;
+  transition:transform .3s, background .3s, color .3s;cursor:pointer;border:none;font-family:var(--body);
+}
+.btn-primary{background:var(--sun);color:var(--bg)}
+.btn-primary:hover{background:var(--sun-2);transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
+.btn-ghost:hover{background:var(--bg-3);transform:translateY(-2px)}
+
+/* ─────────────── FOOTER ─────────────── */
+footer{padding:48px 32px;border-top:1px solid var(--line);text-align:center}
+footer .brand{font-family:var(--display);font-size:16px;margin-bottom:8px}
+footer .meta{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase}
+footer .meta span{margin:0 12px}
+
+</style>
+</head>
+<body>
+
+<!-- ═════════════ NAV ═════════════ -->
+<nav>
+  <div class="brand">奥威尔号<span class="dot">·</span></div>
+  <ul>
+    <li><a href="#why">理念</a></li>
+    <li><a href="#how">机制</a></li>
+    <li><a href="#story">故事</a></li>
+    <li><a href="#labs">实验室</a></li>
+    <li><a href="#commander">指挥官</a></li>
+  </ul>
+</nav>
+
+<!-- ═════════════ HERO ═════════════ -->
+<section class="hero">
+  <!-- starfield -->
+  <div class="stars" id="stars"></div>
+  <!-- orbital diagram -->
+  <svg class="orbit-svg" viewBox="0 0 800 800" aria-hidden="true">
+    <defs>
+      <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+        <stop offset="0%" stop-color="#ffb163"/>
+        <stop offset="50%" stop-color="#fb923c" stop-opacity=".4"/>
+        <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="400" cy="400" r="36" fill="url(#sun)"/>
+    <circle cx="400" cy="400" r="14" fill="#ffb163"/>
+    <circle class="ring" cx="400" cy="400" r="120"/>
+    <circle class="ring" cx="400" cy="400" r="200"/>
+    <circle class="ring" cx="400" cy="400" r="290"/>
+    <circle class="ring" cx="400" cy="400" r="370" stroke-dasharray="2 6"/>
+    <!-- ship 1 -->
+    <g class="ship ship-track">
+      <g transform="translate(400 400)">
+        <g transform="translate(290 0)">
+          <circle r="3" fill="#fb923c"/>
+          <circle r="6" fill="none" stroke="#fb923c" stroke-opacity=".3"/>
+        </g>
+      </g>
+    </g>
+    <!-- ship 2 -->
+    <g class="ship ship-track-2">
+      <g transform="translate(400 400)">
+        <g transform="translate(200 0)">
+          <circle r="2" fill="#38bdf8"/>
+        </g>
+      </g>
+    </g>
+  </svg>
+
+  <div class="hero-inner">
+    <h1 class="display">
+      <span class="line">让学习</span>
+      <span class="line">成为<em>旅程</em>。</span>
+    </h1>
+    <p class="lead">把九门学科的知识地图，重写成阿力的星际远征——孩子追着故事去学，而不是被学科地图追着走。</p>
+    <div class="meta">
+      <i></i>
+      <span>120 节点</span><span>·</span><span>15 章主线</span><span>·</span><span>20 个前沿实验室</span>
+    </div>
+  </div>
+
+  <div class="scroll-cue">
+    <span>SCROLL</span>
+    <div class="bar"></div>
+  </div>
+</section>
+
+<!-- ═════════════ WHY ═════════════ -->
+<section class="section" id="why">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">为什么</span>
+      <h2 class="display">学科地图让孩子<br>绕道而行。</h2>
+      <p class="sub">"先学完一元二次方程，再学概率，再学物理力学"——这种线性学科树对大人或许成立，对孩子从来不是。他们不缺好奇，缺的是一个值得为之解锁的世界。</p>
+    </div>
+
+    <div class="contrast reveal d2">
+      <div class="col-bad">
+        <div class="label">/ 传统</div>
+        <h3>"今天我们来学万有引力。"</h3>
+        <p>知识被切成了 43 个图标、9 个学科、几百个孤立节点。孩子看不到它们要去往何处，于是只能被推着走。三分钟热度，五分钟分心。</p>
+      </div>
+      <div class="col-good">
+        <div class="label">/ 我们</div>
+        <h3>"<em>启航号</em>脱离地球轨道了，重力快没了——怎么救？"</h3>
+        <p>同样的万有引力，挂在一个孩子真正在乎的瞬间上。先有问题，再有方法。学完那一刻，他知道这把钥匙能打开哪扇门。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ HOW · MECHANISM ═════════════ -->
+<section class="section alt" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">怎么做</span>
+      <h2 class="display">学科 → 剧情 → 实验室。<br><em>三层流动，从未停下。</em></h2>
+      <p class="sub">每个剧情章节把若干学科知识点钉成"解锁条件"。通关之后，相关的前沿实验室自动展开——这是孩子主动钻进去的地方。</p>
+    </div>
+
+    <div class="mech reveal d2">
+      <div class="mech-grid">
+        <div class="mech-node">
+          <span class="swatch" style="background:#38bdf8"></span>
+          <div class="label">/ 第一层</div>
+          <h4>学科基础</h4>
+          <p>语文、数学、物理、化学、生物、英语、历史、地理——必修的知识点，散布在已有学科地图。</p>
+        </div>
+        <div class="mech-arrow">
+          <div>解锁</div>
+          <div class="line"></div>
+        </div>
+        <div class="mech-node story">
+          <span class="swatch" style="background:var(--sun)"></span>
+          <div class="label">/ 第二层</div>
+          <h4>剧情章节</h4>
+          <p>15 章故事主线。每章设若干学科前置；前置全部掌握，章节解锁——孩子才能看到下一段。</p>
+        </div>
+        <div class="mech-arrow">
+          <div>触发</div>
+          <div class="line"></div>
+        </div>
+        <div class="mech-node lab">
+          <span class="swatch" style="background:#a78bfa"></span>
+          <div class="label">/ 第三层</div>
+          <h4>前沿实验室</h4>
+          <p>通关章节后开启。AI、暗物质、意识存储、原子制造……孩子追着兴趣自主深挖。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ THREE ACTS ═════════════ -->
+<section class="section" id="story">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">主线 · 三幕剧</span>
+      <h2 class="display"><em>从地球出发</em>，<br>带着所学回归。</h2>
+      <p class="sub">阿力是一个小机器人。他的姐妹机艾米在 M 星失联——这是孩子要追着完成的事。15 章逐幕推进，从太阳系到外星文明，从单一学科到跨学科决策。</p>
+    </div>
+
+    <div class="acts">
+      <div class="act reveal d2">
+        <div class="num">01</div>
+        <div class="name">ACT&nbsp;ONE</div>
+        <h3 class="display">启航</h3>
+        <div class="age">小学 3-6 年级 · ⭐~⭐⭐⭐</div>
+        <p>阿力被维恩集团激活，从地球出发，途经火星补给。一切才刚开始——他要先弄懂"重力"是什么。</p>
+        <ul class="chapters">
+          <li data-ch="Ch.01">神秘信号</li>
+          <li data-ch="Ch.02">启航号苏醒</li>
+          <li data-ch="Ch.03">重力之谜</li>
+          <li data-ch="Ch.04">火星补给</li>
+        </ul>
+      </div>
+
+      <div class="act reveal d3">
+        <div class="num">02</div>
+        <div class="name">ACT&nbsp;TWO</div>
+        <h3 class="display">深空</h3>
+        <div class="age">小学高年级 ~ 初中低年级 · ⭐⭐~⭐⭐⭐⭐</div>
+        <p>太阳帆扬起、陨石带遭遇、时空开始扭曲。第二位机器人塔斯与外星昆虫塔基相继加入。</p>
+        <ul class="chapters">
+          <li data-ch="Ch.05">太阳帆扬起</li>
+          <li data-ch="Ch.06">陨石带危机</li>
+          <li data-ch="Ch.07">时间的褶皱</li>
+          <li data-ch="Ch.08">寻找 M 星</li>
+          <li data-ch="Ch.09">昆虫塔基</li>
+        </ul>
+      </div>
+
+      <div class="act reveal d4">
+        <div class="num">03</div>
+        <div class="name">ACT&nbsp;THREE</div>
+        <h3 class="display">接触</h3>
+        <div class="age">初中 · ⭐⭐⭐~⭐⭐⭐⭐⭐</div>
+        <p>低技术文明、超高文明、二维空间访客，最后是退化的奥威尔号。孩子被推向真正的伦理选择题。</p>
+        <ul class="chapters">
+          <li data-ch="Ch.10">Y 星初遇</li>
+          <li data-ch="Ch.11">N 星智慧</li>
+          <li data-ch="Ch.12">二维之眼</li>
+          <li data-ch="Ch.13">营救艾米</li>
+          <li data-ch="Ch.14">退化的奥威尔号</li>
+          <li data-ch="Ch.15">归途与新生</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ FRONTIER LABS ═════════════ -->
+<section class="section alt" id="labs">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">前沿实验室 · 20</span>
+      <h2 class="display">章节通关，<br><em>实验室点亮。</em></h2>
+      <p class="sub">每个实验室是一个可深挖的小宇宙：3 个由浅入深的知识节点。孩子按兴趣进入，不强迫——课本之外的世界，被故事亲手递到他面前。</p>
+    </div>
+
+    <div class="lab-grid reveal d2">
+      <div class="lab"><div class="emo">🖥️</div><div class="nm">太空计算中心</div><div class="tag">Ch.07 · 11 · 15</div></div>
+      <div class="lab"><div class="emo">⛏️</div><div class="nm">小行星开采</div><div class="tag">Ch.06</div></div>
+      <div class="lab"><div class="emo">🔗</div><div class="nm">区块链货币</div><div class="tag">Ch.11</div></div>
+      <div class="lab"><div class="emo">🥽</div><div class="nm">VR 虚拟现实</div><div class="tag">Ch.12</div></div>
+      <div class="lab"><div class="emo">🧠</div><div class="nm">意识存储</div><div class="tag">Ch.11 · 13</div></div>
+      <div class="lab"><div class="emo">🖨️</div><div class="nm">3D 打印</div><div class="tag">Ch.05 · 06</div></div>
+      <div class="lab"><div class="emo">🎓</div><div class="nm">新型教育</div><div class="tag">Ch.04 · 15</div></div>
+      <div class="lab"><div class="emo">⚖️</div><div class="nm">法律与政府</div><div class="tag">Ch.10 · 14</div></div>
+      <div class="lab"><div class="emo">🏥</div><div class="nm">智能医疗</div><div class="tag">Ch.08 · 13</div></div>
+      <div class="lab"><div class="emo">🌱</div><div class="nm">智能农业</div><div class="tag">Ch.04</div></div>
+      <div class="lab"><div class="emo">🔋</div><div class="nm">能源存储</div><div class="tag">Ch.03 · 05 · 15</div></div>
+      <div class="lab"><div class="emo">🌌</div><div class="nm">暗物质</div><div class="tag">Ch.07 · 12</div></div>
+      <div class="lab"><div class="emo">⚛️</div><div class="nm">原子制造</div><div class="tag">Ch.12</div></div>
+      <div class="lab"><div class="emo">🤖</div><div class="nm">AI</div><div class="tag">Ch.01 · 11 · 15</div></div>
+      <div class="lab"><div class="emo">🦾</div><div class="nm">仿生机器人</div><div class="tag">Ch.02 · 09</div></div>
+      <div class="lab"><div class="emo">🏭</div><div class="nm">智能工厂</div><div class="tag">Ch.06 · 15</div></div>
+      <div class="lab"><div class="emo">💗</div><div class="nm">情感寄托</div><div class="tag">Ch.02 · 14</div></div>
+      <div class="lab"><div class="emo">🕊️</div><div class="nm">宗教与信仰</div><div class="tag">Ch.10 · 14</div></div>
+      <div class="lab"><div class="emo">🎨</div><div class="nm">艺术</div><div class="tag">Ch.09 · 10 · 15</div></div>
+      <div class="lab"><div class="emo">⚔️</div><div class="nm">军事</div><div class="tag">Ch.10 · 13</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ COMMANDER ═════════════ -->
+<section class="section tight" id="commander">
+  <div class="wrap">
+    <div class="commander">
+      <div class="commander-portrait reveal">
+        <div class="glyph">🚀</div>
+        <div class="name-tag">
+          <span>STARSHIP / ORWELL-01</span>
+          <span class="b">CMD &middot; CADE</span>
+        </div>
+      </div>
+
+      <div class="commander-body reveal d2">
+        <div class="role">/ NOVA 第六位老师</div>
+        <h2 class="display">凯德<em>指挥官</em>。</h2>
+        <p>启航号舰长，阿力的导师，整段旅程的协调者。他不替孩子讲解学科——那是顾老师、李老师、Lily、苏老师的领域。</p>
+        <p>凯德的任务是：识别孩子卡在哪一章，把他/她递到对应的专业老师手上，等学完再接回故事里。</p>
+
+        <div class="commander-quote">"小船员，欢迎登舰。我们手头有 15 章任务——你想从哪一章开始？"</div>
+      </div>
+    </div>
+
+    <div class="teachers reveal d3">
+      <div class="teacher"><div class="emo">⬡</div><div class="nm">小 N</div><div class="sub-info">MENTOR · 主导师</div></div>
+      <div class="teacher"><div class="emo">📐</div><div class="nm">顾老师</div><div class="sub-info">MATH · 数学</div></div>
+      <div class="teacher"><div class="emo">🔬</div><div class="nm">李老师</div><div class="sub-info">PHYS · 物理化学</div></div>
+      <div class="teacher"><div class="emo">📖</div><div class="nm">Lily</div><div class="sub-info">ENG · 英语</div></div>
+      <div class="teacher"><div class="emo">📜</div><div class="nm">苏老师</div><div class="sub-info">LIT · 语文</div></div>
+      <div class="teacher cmd"><span class="new-badge">NEW</span><div class="emo">🚀</div><div class="nm">凯德</div><div class="sub-info">CMDR · 跨学科</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ STATS ═════════════ -->
+<section class="section tight alt">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">规模</span>
+      <h2 class="display">不是 demo。<br><em>是一整张地图。</em></h2>
+    </div>
+
+    <div class="stats reveal d2">
+      <div class="stat">
+        <div class="num">120</div>
+        <div class="label">/ 知识节点</div>
+        <div class="desc">15 剧情 + 45 学科支线 + 60 实验室节点，全部用一份 JSON 一次性导入。</div>
+      </div>
+      <div class="stat">
+        <div class="num">123</div>
+        <div class="label">/ 依赖关系</div>
+        <div class="desc">三层 DAG 流动，无断裂、无环。每个节点都知道自己在故事的哪个位置。</div>
+      </div>
+      <div class="stat">
+        <div class="num">20<span class="plus"></span></div>
+        <div class="label">/ 前沿主题</div>
+        <div class="desc">从小行星开采到意识存储，从区块链到暗物质。覆盖技术、伦理、艺术三个层面。</div>
+      </div>
+      <div class="stat">
+        <div class="num">6</div>
+        <div class="label">/ AI 老师</div>
+        <div class="desc">小 N · Lily · 顾老师 · 李老师 · 苏老师 · 凯德指挥官。剧情与教学合流。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ PRINCIPLES ═════════════ -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">背后的设计</span>
+      <h2 class="display">不是"游戏化学习"。<br><em>是学习本来的样子。</em></h2>
+      <p class="sub">游戏化把分数贴在练习题上；故事化把意义贴在知识本身上。两者差一个数量级。</p>
+    </div>
+
+    <div class="principles">
+      <div class="principle reveal d2">
+        <h4><span class="num">/ 01</span>动机先行</h4>
+        <p>孩子先在乎"阿力的太阳帆怎么撑开"，才会愿意学光的反射和动量守恒。学科是钥匙，故事是门。先有门，再有钥匙。</p>
+      </div>
+      <div class="principle reveal d3">
+        <h4><span class="num">/ 02</span>跨学科自然发生</h4>
+        <p>救援艾米需要气压、生命维持、热传递三门知识同时上场——孩子不会觉得"今天怎么又是物理"，他只觉得"这一关好刺激"。</p>
+      </div>
+      <div class="principle reveal d4">
+        <h4><span class="num">/ 03</span>留白与自由</h4>
+        <p>艾米的真实身份、奥威尔号的最终命运都没有写死。孩子被邀请进入设计——故事的下一章，他来写。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ CLOSING ═════════════ -->
+<section class="closing">
+  <h2 class="display">如果学习<br>是<em>一段旅程</em>，</h2>
+  <p>那么知识，<br>就成了那个值得为之走得更远的理由。</p>
+  <div class="cta-row">
+    <a href="#" class="btn btn-primary">立即启程</a>
+    <a href="#story" class="btn btn-ghost">查看故事大纲</a>
+  </div>
+</section>
+
+<footer>
+  <div class="brand">奥威尔号 · 阿力的星际远征</div>
+  <div class="meta">
+    <span>NOVA × KNOWLEDGE&nbsp;MAP</span>
+    <span>·</span>
+    <span>120 NODES · 15 CHAPTERS · 20 LABS</span>
+  </div>
+</footer>
+
+<script>
+/* ── starfield ── */
+(function makeStars(){
+  const host = document.getElementById('stars');
+  const N = 80;
+  for(let i=0;i<N;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random()*1.6 + .4;
+    s.style.width = size+'px';
+    s.style.height = size+'px';
+    s.style.left = Math.random()*100+'%';
+    s.style.top = Math.random()*100+'%';
+    s.style.opacity = (.3 + Math.random()*.7);
+    s.style.animationDelay = (Math.random()*4)+'s';
+    s.style.animationDuration = (3 + Math.random()*4)+'s';
+    host.appendChild(s);
+  }
+})();
+
+/* ── scroll reveal ── */
+(function reveal(){
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  },{threshold:0.12, rootMargin:'0px 0px -60px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+})();
+
+/* ── nav smooth scroll ── */
+document.querySelectorAll('nav a, .cta-row a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const h = a.getAttribute('href');
+    if(h && h.startsWith('#') && h.length>1){
+      e.preventDefault();
+      const t = document.querySelector(h);
+      if(t) t.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  });
+});
+</script>
+
+</body>
+</html>
