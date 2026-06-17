@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>物理沙盒 Pro — 一个标签页里的整座物理实验室</title>
+<meta name="description" content="物理沙盒 Pro：力学、电路、光学、流体、波动、概率、微观粒子，直到可编程单片机。拖一拖、连一连，物理规律自己会动起来。">
+<style>
+:root{
+  --ink:#1d1d1f;
+  --bg:#ffffff;
+  --bg-alt:#f5f5f7;
+  --bg-dark:#000000;
+  --muted:#6e6e73;
+  --muted-2:#86868b;
+  --line:#d2d2d7;
+  --link:#0071e3;
+  --radius:24px;
+  --radius-lg:32px;
+  --maxw:1080px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono","JetBrains Mono",ui-monospace,"Menlo","Consolas",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);
+  color:var(--ink);
+  background:var(--bg);
+  line-height:1.47;
+  letter-spacing:-0.01em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+img,svg,canvas{display:block;max-width:100%}
+:focus-visible{outline:3px solid var(--link);outline-offset:3px;border-radius:6px}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:100;
+  height:52px;
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+.nav-in{
+  max-width:var(--maxw);margin:0 auto;height:100%;
+  display:flex;align-items:center;gap:8px;
+  padding:0 22px;
+}
+.nav-brand{font-size:18px;font-weight:600;letter-spacing:-0.02em;color:var(--ink);display:flex;align-items:center;gap:7px}
+.nav-brand .glyph{font-size:18px}
+.nav-links{display:flex;gap:6px;margin-left:auto;align-items:center}
+.nav-links a{
+  color:var(--ink);font-size:13.5px;font-weight:400;
+  padding:6px 11px;border-radius:980px;letter-spacing:-0.01em;
+  transition:background .2s,color .2s;
+}
+.nav-links a:hover{background:rgba(0,0,0,0.06);text-decoration:none}
+.nav-cta{
+  background:var(--link);color:#fff !important;font-weight:500;
+  padding:6px 15px !important;
+}
+.nav-cta:hover{background:#0077ed;text-decoration:none}
+@media(max-width:740px){
+  .nav-links a:not(.nav-cta){display:none}
+}
+
+/* ---------- shared section ---------- */
+.section{padding:120px 22px;position:relative}
+.wrap{max-width:var(--maxw);margin:0 auto}
+.section.alt{background:var(--bg-alt)}
+.section.dark{background:var(--bg-dark);color:#f5f5f7}
+.section.dark .lead,.section.dark .eyebrow~.lead{color:#a1a1a6}
+
+.eyebrow{
+  display:inline-block;font-size:15px;font-weight:600;letter-spacing:0;
+  color:var(--accent,#0071e3);margin-bottom:14px;
+}
+h2.head{
+  font-size:clamp(32px,5.2vw,56px);font-weight:700;letter-spacing:-0.022em;
+  line-height:1.06;
+}
+.lead{
+  font-size:clamp(19px,2.3vw,24px);font-weight:400;letter-spacing:-0.012em;
+  color:var(--muted);line-height:1.42;max-width:680px;margin-top:18px;
+}
+.section.dark h2.head{color:#f5f5f7}
+
+/* ---------- hero ---------- */
+.hero{
+  text-align:center;
+  padding:84px 22px 40px;
+  background:linear-gradient(180deg,#fbfbfd 0%,#ffffff 60%);
+}
+.hero h1{
+  font-size:clamp(40px,8vw,92px);font-weight:700;letter-spacing:-0.03em;
+  line-height:1.04;color:var(--ink);
+}
+.hero .sub{
+  font-size:clamp(19px,2.6vw,27px);font-weight:400;letter-spacing:-0.014em;
+  color:var(--muted);max-width:720px;margin:22px auto 0;line-height:1.42;
+}
+.hero-cta{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:32px}
+.btn{
+  font-size:18px;font-weight:400;letter-spacing:-0.01em;
+  padding:12px 24px;border-radius:980px;transition:all .2s;cursor:pointer;border:none;
+}
+.btn-primary{background:var(--link);color:#fff}
+.btn-primary:hover{background:#0077ed;text-decoration:none}
+.btn-ghost{background:transparent;color:var(--link);border:1px solid var(--link)}
+.btn-ghost:hover{background:var(--link);color:#fff;text-decoration:none}
+
+/* hero live canvas */
+.hero-stage{
+  max-width:960px;margin:48px auto 0;
+  border-radius:var(--radius-lg);
+  background:linear-gradient(160deg,#1d1d1f 0%,#000 100%);
+  box-shadow:0 30px 80px -30px rgba(0,0,0,0.45);
+  overflow:hidden;position:relative;aspect-ratio:16/9;
+}
+.hero-stage canvas{width:100%;height:100%;display:block}
+.hero-stage .stage-hint{
+  position:absolute;left:20px;bottom:16px;color:rgba(255,255,255,0.5);
+  font-size:13px;letter-spacing:0;pointer-events:none;
+}
+
+/* ---------- stat strip ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:920px;margin:0 auto;text-align:center}
+.stat .n{font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-0.03em;line-height:1}
+.stat .l{font-size:15px;color:var(--muted);margin-top:8px;letter-spacing:-0.01em}
+@media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr);gap:36px 18px}}
+
+/* ---------- category layout ---------- */
+.cat-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:56px;align-items:center}
+.cat-grid.flip .cat-text{order:2}
+.cat-visual{
+  border-radius:var(--radius-lg);
+  background:var(--vis-bg,#f5f5f7);
+  aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+.section.alt .cat-visual{background:#fff}
+.section.dark .cat-visual{background:#0c0c0e;border:1px solid rgba(255,255,255,0.08)}
+.cat-visual svg{width:78%;height:78%}
+
+.feature-list{list-style:none;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:9px}
+.feature-list li{
+  font-size:14px;font-weight:500;letter-spacing:-0.01em;
+  padding:7px 13px;border-radius:980px;
+  background:color-mix(in srgb,var(--accent) 11%,transparent);
+  color:color-mix(in srgb,var(--accent) 78%,var(--ink));
+}
+.section.dark .feature-list li{background:color-mix(in srgb,var(--accent) 22%,transparent);color:#f5f5f7}
+
+/* example callout */
+.example{
+  margin-top:28px;padding:20px 22px;border-radius:18px;
+  background:#fff;border:1px solid var(--line);
+  display:flex;gap:14px;align-items:flex-start;
+}
+.section.alt .example{background:var(--bg-alt);border-color:transparent}
+.section.dark .example{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1)}
+.example .tag{
+  flex-shrink:0;font-size:12px;font-weight:600;letter-spacing:0;
+  color:#fff;background:var(--accent);padding:4px 9px;border-radius:7px;margin-top:1px;
+}
+.example p{font-size:16px;line-height:1.5;color:var(--ink)}
+.section.dark .example p{color:#e8e8ed}
+.example code{font-family:var(--mono);font-size:13.5px;background:color-mix(in srgb,var(--accent) 12%,transparent);padding:1px 6px;border-radius:5px;color:color-mix(in srgb,var(--accent) 80%,var(--ink))}
+.section.dark .example code{background:rgba(255,255,255,0.1);color:#fff}
+
+@media(max-width:820px){
+  .cat-grid{grid-template-columns:1fr;gap:30px}
+  .cat-grid.flip .cat-text{order:0}
+  .cat-visual{aspect-ratio:16/10}
+  .section{padding:80px 22px}
+}
+
+/* ---------- bento grid ---------- */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;margin-top:50px}
+.tile{
+  border-radius:var(--radius);padding:30px;
+  background:#fff;border:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:230px;
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+.section.alt .tile{background:#fff}
+.tile:hover{transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(0,0,0,0.3)}
+.tile.span3{grid-column:span 3}
+.tile.span2{grid-column:span 2}
+.tile.span6{grid-column:span 6}
+.tile .ti{font-size:30px;margin-bottom:14px}
+.tile h3{font-size:21px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px}
+.tile p{font-size:15.5px;color:var(--muted);line-height:1.5}
+.tile .try{margin-top:auto;padding-top:16px;font-size:14px;font-weight:500;color:var(--accent,var(--link))}
+@media(max-width:900px){.bento{grid-template-columns:repeat(2,1fr)}.tile.span3,.tile.span2,.tile.span6{grid-column:span 1}}
+@media(max-width:560px){.bento{grid-template-columns:1fr}.tile.span3,.tile.span2,.tile.span6{grid-column:span 1}}
+
+/* code block (mcu/remote) */
+.codecard{
+  margin-top:24px;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.12);background:#0c0c0e;
+}
+.codecard .bar{display:flex;gap:7px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.codecard .bar i{width:11px;height:11px;border-radius:50%;display:block}
+.codecard .bar .r{background:#ff5f57}.codecard .bar .y{background:#febc2e}.codecard .bar .g{background:#28c840}
+.codecard .bar span{margin-left:8px;font-size:12px;color:#86868b;font-family:var(--mono)}
+.codecard pre{padding:18px 20px;margin:0;overflow-x:auto}
+.codecard code{font-family:var(--mono);font-size:14px;line-height:1.8;color:#e8e8ed;white-space:pre}
+.codecard .cm{color:#6e6e73}
+.codecard .kw{color:#ff9f0a}
+.codecard .nm{color:#30d158}
+
+/* closing cta */
+.closing{text-align:center;padding:130px 22px}
+.closing h2{font-size:clamp(34px,6vw,64px);font-weight:700;letter-spacing:-0.03em;line-height:1.05}
+.closing .lead{margin:20px auto 0;text-align:center}
+.closing .hero-cta{margin-top:34px}
+
+/* footer */
+.footer{background:var(--bg-alt);color:var(--muted);font-size:12.5px;line-height:1.6;padding:42px 22px}
+.footer .wrap{max-width:var(--maxw)}
+.footer .row{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;border-top:1px solid var(--line);padding-top:22px}
+.footer a{color:var(--muted)}
+.footer .copy{color:var(--muted-2)}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* spin / float / pulse anims for svgs */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinr{to{transform:rotate(-360deg)}}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes dash{to{stroke-dashoffset:-200}}
+@keyframes blink{0%,45%{opacity:1}55%,100%{opacity:0.18}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.gear-a{transform-origin:center;animation:spin 9s linear infinite}
+.gear-b{transform-origin:center;animation:spinr 6s linear infinite}
+.flow{stroke-dasharray:6 8;animation:dash 3s linear infinite}
+.flow-slow{stroke-dasharray:5 9;animation:dash 6s linear infinite}
+.orbit{transform-origin:center;animation:orbit 7s linear infinite}
+.orbit2{transform-origin:center;animation:orbit 4.4s linear infinite}
+.led{animation:blink 1.6s steps(1) infinite}
+.bobber{animation:bob 4s ease-in-out infinite}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+  .gear-a,.gear-b,.flow,.flow-slow,.orbit,.orbit2,.led,.bobber{animation:none}
+}
+</style>
+</head>
+<body>
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="nav-in">
+    <a class="nav-brand" href="#top"><span class="glyph">⚛</span>物理沙盒 Pro</a>
+    <div class="nav-links">
+      <a href="#mechanics">力学</a>
+      <a href="#electric">电与磁</a>
+      <a href="#optics">光学</a>
+      <a href="#logic">逻辑·单片机</a>
+      <a href="#gallery">示例</a>
+      <a class="nav-cta" href="./physics12.html">打开沙盒</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <h1>拖一拖，连一连，<br>物理自己动起来。</h1>
+  <p class="sub">力学、电路、光学、流体、波动、概率、微观粒子，直到可编程单片机——一个浏览器标签页里的整座物理实验室。</p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="./physics12.html">打开沙盒</a>
+    <a class="btn btn-ghost" href="#mechanics">看看能做什么</a>
+  </div>
+  <div class="hero-stage reveal" id="heroStage">
+    <canvas id="heroCanvas"></canvas>
+    <div class="stage-hint">实时物理引擎 · 拖动鼠标拨一拨这些小球</div>
+  </div>
+</header>
+
+<!-- ============ STATS ============ -->
+<section class="section" style="padding-top:80px;padding-bottom:80px">
+  <div class="wrap stats reveal">
+    <div class="stat"><div class="n">12</div><div class="l">大学科模块</div></div>
+    <div class="stat"><div class="n">100<span style="font-size:0.6em">+</span></div><div class="l">可拖放组件</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">安装，开箱即用</div></div>
+    <div class="stat"><div class="n">∞</div><div class="l">可搭的装置</div></div>
+  </div>
+</section>
+
+<!-- ============ MECHANICS ============ -->
+<section class="section alt" id="mechanics" style="--accent:#ff6b35">
+  <div class="wrap cat-grid reveal">
+    <div class="cat-text">
+      <span class="eyebrow">力学 · 机构</span>
+      <h2 class="head">让齿轮咬合，<br>让连杆摆动。</h2>
+      <p class="lead">圆、矩形、多边形、自由形随手画；用弹簧、连杆、绳索、轴连和铰接把它们连起来。轮子、电机、齿轮、链条、履带，再到会走路的机器人——经典机构，所见即所动。打开运动学模式，机构还能交给 mec2 数学精确求解。</p>
+      <ul class="feature-list">
+        <li>刚体 / 弹簧 / 连杆</li><li>销钉铰接</li><li>轮子 · 小车 · 电机</li><li>齿轮 · 链条 · 履带</li><li>滑轮 · 斜面 · 抛体</li><li>会走路的机器人</li><li>运动学精确求解</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>用电机带动一根曲柄，连杆推动滑块——一个真正能动的<strong>曲柄滑块机构</strong>。或者点一下「小车」一键生成底盘，开启轮子电机让它爬上斜坡。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="两个咬合转动的齿轮">
+        <g fill="none" stroke="#ff6b35" stroke-width="9" stroke-linecap="round">
+          <circle class="gear-a" cx="74" cy="84" r="34" stroke-dasharray="6 12.8"/>
+          <circle class="gear-b" cx="138" cy="56" r="22" stroke-dasharray="5 11.5"/>
+        </g>
+        <circle cx="74" cy="84" r="13" fill="none" stroke="#ff6b35" stroke-width="3"/>
+        <circle cx="138" cy="56" r="9" fill="none" stroke="#ff6b35" stroke-width="3"/>
+        <circle cx="74" cy="84" r="3" fill="#ff6b35"/><circle cx="138" cy="56" r="2.5" fill="#ff6b35"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ELECTRICITY ============ -->
+<section class="section" id="electric" style="--accent:#f5a300">
+  <div class="wrap cat-grid flip reveal">
+    <div class="cat-text">
+      <span class="eyebrow">电学 · 电路</span>
+      <h2 class="head">接通电路，<br>灯就亮了。</h2>
+      <p class="lead">电源、导线、开关、灯泡，搭出第一个回路；再加电阻、电容、电感、二极管做整流与滤波。交流信号源、电压表、电流表帮你读出每一处的电压电流，电动机、LED、电磁铁、蜂鸣器让电路真正"做事"。</p>
+      <ul class="feature-list">
+        <li>电源 · 导线 · 开关</li><li>电阻 · 电容 · 电感</li><li>二极管 · LED</li><li>交流信号源</li><li>电压表 · 电流表</li><li>电动机 · 电磁铁 · 蜂鸣器</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>串一个 <strong>RC 电路</strong>，用电压表看电容怎样充电放电；或者用开关控制电磁铁，做一台能吸能放的<strong>电磁起重机</strong>。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="一个点亮灯泡的电路回路">
+        <rect x="38" y="40" width="124" height="74" rx="14" fill="none" stroke="#f5a300" stroke-width="3"/>
+        <path class="flow" d="M38 77 H38 M38 40 H162 M162 40 V114 M162 114 H38 M38 114 V40" fill="none" stroke="#f5a300" stroke-width="4"/>
+        <g stroke="#f5a300" stroke-width="3"><line x1="30" y1="68" x2="30" y2="86"/><line x1="46" y1="72" x2="46" y2="82"/></g>
+        <circle cx="100" cy="40" r="13" fill="#fff" stroke="#f5a300" stroke-width="3"/>
+        <circle class="led" cx="100" cy="40" r="13" fill="#ffd84d"/>
+        <path d="M94 40 l4 5 4 -8 4 5" fill="none" stroke="#a86b00" stroke-width="2"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ EM / PARTICLES ============ -->
+<section class="section dark" id="field" style="--accent:#7c8cff">
+  <div class="wrap cat-grid reveal">
+    <div class="cat-text">
+      <span class="eyebrow">电磁场 · 带电粒子</span>
+      <h2 class="head">看不见的场，<br>看得见的轨迹。</h2>
+      <p class="lead">放下磁铁与正负电荷，画出一片磁场区域，再发射质子、电子、中子。洛伦兹力把粒子掰成优雅的回旋曲线——磁场让它们打转，电场让它们偏转，组合起来就是一台速度选择器。</p>
+      <ul class="feature-list">
+        <li>磁铁 · 引力场</li><li>正电荷 · 负电荷</li><li>磁场区域</li><li>质子 · 电子 · 中子</li><li>回旋 / 速度选择</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>在磁场区域里发射一颗<strong>电子</strong>，看它绕成一个圈做回旋运动；再叠加一片电场，调出只让某一速度通过的<strong>速度选择器</strong>。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="带电粒子在磁场中回旋">
+        <g fill="#7c8cff"><circle cx="40" cy="40" r="2"/><circle cx="80" cy="40" r="2"/><circle cx="120" cy="40" r="2"/><circle cx="160" cy="40" r="2"/><circle cx="40" cy="110" r="2"/><circle cx="80" cy="110" r="2"/><circle cx="120" cy="110" r="2"/><circle cx="160" cy="110" r="2"/></g>
+        <circle cx="100" cy="75" r="40" fill="none" stroke="#7c8cff" stroke-width="2.5" stroke-dasharray="3 6" opacity="0.7"/>
+        <g class="orbit" style="transform-box:fill-box;transform-origin:100px 75px">
+          <circle cx="140" cy="75" r="7" fill="#7c8cff"/>
+        </g>
+        <circle cx="100" cy="75" r="4" fill="#fff"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OPTICS ============ -->
+<section class="section" id="optics" style="--accent:#00b5d8">
+  <div class="wrap cat-grid flip reveal">
+    <div class="cat-text">
+      <span class="eyebrow">光学 · 光线</span>
+      <h2 class="head">一束白光，<br>七种颜色。</h2>
+      <p class="lead">激光发射器射出真实可追踪的光线。穿过三棱镜会色散成彩虹，经过凸透镜汇聚、凹透镜发散，碰到镜面按"入射角等于反射角"反弹。把光引到感光探测器上，就是一个光控开关。</p>
+      <ul class="feature-list">
+        <li>激光发射器</li><li>三棱镜 · 色散</li><li>凸透镜 · 凹透镜</li><li>镜面反射</li><li>感光探测器</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>让一束白光斜穿<strong>三棱镜</strong>，看它分出红橙黄绿蓝紫；再用几面镜子把激光折来折去，最后打到探测器上点亮一盏灯。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="白光经棱镜色散">
+        <line x1="14" y1="75" x2="78" y2="75" stroke="#fff" stroke-width="4"/>
+        <line x1="14" y1="75" x2="78" y2="75" stroke="#bbb" stroke-width="4" opacity="0.5"/>
+        <polygon points="78,38 78,112 134,75" fill="none" stroke="#00b5d8" stroke-width="3"/>
+        <g stroke-width="3" stroke-linecap="round">
+          <line x1="120" y1="72" x2="190" y2="52" stroke="#ff3b30"/>
+          <line x1="120" y1="73" x2="190" y2="62" stroke="#ff9500"/>
+          <line x1="120" y1="74" x2="190" y2="72" stroke="#ffcc00"/>
+          <line x1="120" y1="76" x2="190" y2="82" stroke="#34c759"/>
+          <line x1="120" y1="77" x2="190" y2="92" stroke="#007aff"/>
+          <line x1="120" y1="78" x2="190" y2="102" stroke="#5e5ce6"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FLUIDS ============ -->
+<section class="section alt" id="fluids" style="--accent:#2d9bf0">
+  <div class="wrap cat-grid reveal">
+    <div class="cat-text">
+      <span class="eyebrow">流体 · 材料</span>
+      <h2 class="head">让水流动，<br>让布飘落。</h2>
+      <p class="lead">画一池水，调它的密度、液面、形状；用管道把两池连成连通器，液面会自动拉平、从高处流向低处，还能加个水泵把水抽上去。再来一块软体布料、一束颗粒流、一阵风、一片加热区做蒸汽机，甚至一口能吞噬物体的重力井。</p>
+      <ul class="feature-list">
+        <li>水池 · 连通器</li><li>管道 · 水泵</li><li>软体布料</li><li>颗粒源 · 颗粒消除区</li><li>风力 · 加热区(蒸汽机)</li><li>重力异常区 · 传送门</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>把两个高度不同的水池用<strong>管道</strong>连起来，看液面慢慢拉平成连通器；或铺一块<strong>布料</strong>，让它像桌布一样盖落在物体上。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="连通器中的水位">
+        <path d="M40 30 V100 a16 16 0 0 0 16 16 H60" fill="none" stroke="#2d9bf0" stroke-width="3"/>
+        <path d="M160 30 V100 a16 16 0 0 1 -16 16 H140" fill="none" stroke="#2d9bf0" stroke-width="3"/>
+        <path d="M60 116 H140" fill="none" stroke="#2d9bf0" stroke-width="3"/>
+        <path d="M40 70 H56 a16 16 0 0 1 16 16 V108 a8 8 0 0 0 8 8 H120 a8 8 0 0 0 8 -8 V86 a16 16 0 0 1 16 -16 H160 V100 a16 16 0 0 1 -16 16 H56 a16 16 0 0 1 -16 -16 Z" fill="#2d9bf0" opacity="0.28"/>
+        <path class="flow" d="M62 116 H138" stroke="#2d9bf0" stroke-width="4" fill="none"/>
+        <line x1="40" y1="70" x2="60" y2="70" stroke="#2d9bf0" stroke-width="2.5" stroke-dasharray="3 4"/>
+        <line x1="140" y1="70" x2="160" y2="70" stroke="#2d9bf0" stroke-width="2.5" stroke-dasharray="3 4"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WAVES ============ -->
+<section class="section" id="waves" style="--accent:#19c37d">
+  <div class="wrap cat-grid flip reveal">
+    <div class="cat-text">
+      <span class="eyebrow">波动 · 振动</span>
+      <h2 class="head">看见波腹，<br>看见波节。</h2>
+      <p class="lead">在一根两端固定的弦左端施加正弦激励，驻波就浮现出来——波腹起伏、波节静止。弹簧振子、单摆、往复器，把简谐运动的周期与能量交换摆在眼前，调一调参数，规律一目了然。</p>
+      <ul class="feature-list">
+        <li>驻波弦</li><li>弹簧振子</li><li>单摆</li><li>往复器</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>给驻波弦换不同的激励频率，数一数出现了几个<strong>波腹</strong>；或改变弹簧振子的劲度系数，观察<strong>周期</strong>怎样随之变化。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="一条正弦驻波">
+        <line x1="20" y1="75" x2="180" y2="75" stroke="#19c37d" stroke-width="1.5" opacity="0.4" stroke-dasharray="2 4"/>
+        <path class="flow-slow" d="M20 75 Q40 30 60 75 T100 75 T140 75 T180 75" fill="none" stroke="#19c37d" stroke-width="3.5"/>
+        <path d="M20 75 Q40 120 60 75 T100 75 T140 75 T180 75" fill="none" stroke="#19c37d" stroke-width="2" opacity="0.35"/>
+        <g fill="#19c37d"><circle cx="20" cy="75" r="3.5"/><circle cx="60" cy="75" r="3.5"/><circle cx="100" cy="75" r="3.5"/><circle cx="140" cy="75" r="3.5"/><circle cx="180" cy="75" r="3.5"/></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROBABILITY ============ -->
+<section class="section alt" id="probability" style="--accent:#ff4d6d">
+  <div class="wrap cat-grid reveal">
+    <div class="cat-text">
+      <span class="eyebrow">概率 · 统计</span>
+      <h2 class="head">几百颗小球，<br>堆出一条钟形曲线。</h2>
+      <p class="lead">高尔顿板让小球一路随机左右弹跳，最后自己堆成正态分布。转盘、骰子、硬币随手一掷，频率统计实时累加——大数定律不再是课本里的一句话，而是眼前慢慢长出来的形状。</p>
+      <ul class="feature-list">
+        <li>高尔顿板</li><li>概率转盘</li><li>骰子</li><li>硬币</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>在高尔顿板上方放一个颗粒源，喷下几百颗球，看它们堆成漂亮的<strong>正态分布</strong>；或连抛硬币上百次，看正面频率怎样趋近 <strong>0.5</strong>。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="高尔顿板与正态分布">
+        <g fill="#ff4d6d"><circle cx="100" cy="26" r="2.5"/><circle cx="88" cy="42" r="2.5"/><circle cx="112" cy="42" r="2.5"/><circle cx="76" cy="58" r="2.5"/><circle cx="100" cy="58" r="2.5"/><circle cx="124" cy="58" r="2.5"/><circle cx="64" cy="74" r="2.5"/><circle cx="88" cy="74" r="2.5"/><circle cx="112" cy="74" r="2.5"/><circle cx="136" cy="74" r="2.5"/></g>
+        <g fill="#ff4d6d" opacity="0.85"><rect x="46" y="120" width="13" height="10" rx="2"/><rect x="62" y="110" width="13" height="20" rx="2"/><rect x="78" y="96" width="13" height="34" rx="2"/><rect x="94" y="90" width="13" height="40" rx="2"/><rect x="110" y="100" width="13" height="30" rx="2"/><rect x="126" y="112" width="13" height="18" rx="2"/><rect x="142" y="122" width="13" height="8" rx="2"/></g>
+        <path d="M46 118 Q100 72 155 118" fill="none" stroke="#ff4d6d" stroke-width="2.5" opacity="0.6"/>
+        <circle class="bobber" cx="100" cy="20" r="4" fill="#ff4d6d"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ATOMIC ============ -->
+<section class="section dark" id="atomic" style="--accent:#bf5af2">
+  <div class="wrap cat-grid flip reveal">
+    <div class="cat-text">
+      <span class="eyebrow">微观 · 原子</span>
+      <h2 class="head">从一颗原子，<br>到一场链式反应。</h2>
+      <p class="lead">按玻尔模型搭一颗原子，设定质子、中子、电子数，它会自动认出是哪种元素，并让电子绕核旋转。用中子去轰击原子核，还能点燃一场核裂变链式反应——微观世界，肉眼可见。</p>
+      <ul class="feature-list">
+        <li>原子(玻尔模型)</li><li>质子 · 电子 · 中子</li><li>元素自动识别</li><li>核裂变链式反应</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>搭一颗原子，把质子数调到 6，看它变成<strong>碳</strong>；再用一颗中子轰击重核，观察<strong>链式反应</strong>怎样一发不可收。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="原子的玻尔模型">
+        <ellipse cx="100" cy="75" rx="62" ry="24" fill="none" stroke="#bf5af2" stroke-width="2" opacity="0.55"/>
+        <ellipse cx="100" cy="75" rx="62" ry="24" fill="none" stroke="#bf5af2" stroke-width="2" opacity="0.55" transform="rotate(60 100 75)"/>
+        <ellipse cx="100" cy="75" rx="62" ry="24" fill="none" stroke="#bf5af2" stroke-width="2" opacity="0.55" transform="rotate(120 100 75)"/>
+        <g class="orbit" style="transform-box:fill-box;transform-origin:100px 75px"><circle cx="162" cy="75" r="5" fill="#bf5af2"/></g>
+        <g class="orbit2" style="transform-box:fill-box;transform-origin:100px 75px"><circle cx="38" cy="75" r="5" fill="#d18cff"/></g>
+        <circle cx="100" cy="75" r="13" fill="#bf5af2"/>
+        <circle cx="96" cy="72" r="4" fill="#ff6b6b"/><circle cx="104" cy="78" r="4" fill="#e0e0e0"/><circle cx="103" cy="70" r="4" fill="#ff6b6b"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LOGIC / MCU (flagship) ============ -->
+<section class="section" id="logic" style="--accent:#30d158">
+  <div class="wrap reveal" style="text-align:center;max-width:760px">
+    <span class="eyebrow">逻辑 · 计算</span>
+    <h2 class="head">从一个与门，<br>到一颗可编程单片机。</h2>
+    <p class="lead" style="margin-left:auto;margin-right:auto">与、或、非、异或……连成电路，灯就会按真值表亮灭。逻辑输入能切到「锁存」模式，记住一条链路的结果。而真正的主角是<strong style="color:var(--ink)">单片机芯片</strong>：4 路输入、4 路输出，用布尔方程写程序，支持寄存器、状态机、边沿检测和时钟——每一个仿真步推进一拍，做出锁存、计数、定时、流水灯。</p>
+  </div>
+  <div class="wrap cat-grid reveal" style="margin-top:56px">
+    <div class="cat-text">
+      <ul class="feature-list">
+        <li>与/或/非/异或等逻辑门</li><li>逻辑输入：手动 · 跟随 · 锁存</li><li>逻辑灯 · 逻辑连线</li><li>跨模块联动(压力板→逻辑→门)</li><li>单片机：4 入 4 出</li><li>寄存器 · 状态机</li><li>RISE / FALL 边沿</li><li>CLK 时钟</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>给单片机写 <code>Q0=CLK(30)</code>，运行后 Q0 大约一秒闪一次，接上逻辑灯就是一盏<strong>呼吸灯</strong>；再写 <code>Q0=I0|(Q0&!I1)</code> 做一个 I0 置位、I1 复位的<strong>记忆单元</strong>，把一条逻辑链路的结果牢牢存住。</p>
+      </div>
+    </div>
+    <div class="cat-text">
+      <div class="codecard">
+        <div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>MCU · 程序（布尔方程）</span></div>
+<pre><code><span class="cm"># 4 路输出，每个仿真步推进一拍</span>
+<span class="nm">Q0</span> = <span class="kw">CLK</span>(30)            <span class="cm"># 约 1 秒周期的方波</span>
+<span class="nm">Q1</span> = I0 & I1           <span class="cm"># 与门</span>
+<span class="nm">Q2</span> = <span class="kw">RISE</span>(I0) ^ Q2      <span class="cm"># 按一下 I0 翻转一次</span>
+<span class="nm">Q3</span> = I0 | (Q3 & !I1)   <span class="cm"># I0 置位 / I1 复位 的记忆</span></code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTROL / PROPULSION ============ -->
+<section class="section alt" id="control" style="--accent:#ff9500">
+  <div class="wrap cat-grid flip reveal">
+    <div class="cat-text">
+      <span class="eyebrow">控制 · 推进</span>
+      <h2 class="head">用方向键，<br>把它开走。</h2>
+      <p class="lead">放一个遥控器，运行时按 ↑↓←→ 就能驱动关联的物体——圆、方块、多边形、机器人、螺旋桨都行，同时按多键还能斜向。给遥控器写一段预设命令让它自动巡逻；把螺旋桨「组合为推进器」装到小车上，它的推力就驱动整辆车。</p>
+      <ul class="feature-list">
+        <li>遥控器(键盘八向)</li><li>预设命令 · 可循环</li><li>每步力度可调</li><li>螺旋桨 · 升力</li><li>组合为推进器</li><li>遥控小车 / 飞行器</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>给一个方块装上螺旋桨、<strong>组合为推进器</strong>，再关联遥控器——按方向键就能把它开着飞。或给遥控器写下 <code>U30 R60 D30 L60</code>，让小车自己<strong>循环巡逻</strong>一圈又一圈。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="遥控器与螺旋桨飞行器">
+        <rect x="20" y="48" width="64" height="54" rx="11" fill="none" stroke="#ff9500" stroke-width="3"/>
+        <g fill="#ff9500"><path d="M52 58 l5 8 -10 0 z"/><path d="M52 92 l5 -8 -10 0 z"/><path d="M36 75 l8 5 0 -10 z"/><path d="M68 75 l-8 5 0 -10 z"/></g>
+        <circle cx="52" cy="75" r="4" fill="none" stroke="#ff9500" stroke-width="2"/>
+        <g class="bobber" style="transform-box:fill-box;transform-origin:148px 80px">
+          <rect x="128" y="78" width="40" height="26" rx="6" fill="none" stroke="#ff9500" stroke-width="3"/>
+          <line x1="148" y1="78" x2="148" y2="64" stroke="#ff9500" stroke-width="3"/>
+          <g class="gear-b" style="transform-box:fill-box;transform-origin:148px 60px">
+            <line x1="128" y1="60" x2="168" y2="60" stroke="#ff9500" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <circle cx="148" cy="60" r="3" fill="#ff9500"/>
+        </g>
+        <path d="M92 75 H118" stroke="#ff9500" stroke-width="2" stroke-dasharray="3 4"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEM ============ -->
+<section class="section" id="structure" style="--accent:#fbbf24">
+  <div class="wrap cat-grid reveal">
+    <div class="cat-text">
+      <span class="eyebrow">结构力学 · 有限元</span>
+      <h2 class="head">这根梁，<br>哪里最先断？</h2>
+      <p class="lead">画一座桁架或一根梁，加上载荷与支座，结构力学模块用有限元算出应力分布，并把危险区域染成醒目的颜色。哪根杆受力最大、整体会怎样变形，一眼看穿。</p>
+      <ul class="feature-list">
+        <li>桁架 · 梁</li><li>载荷 · 支座</li><li>有限元应力分析</li><li>应力云图 · 变形</li>
+      </ul>
+      <div class="example">
+        <span class="tag">试试看</span>
+        <p>搭一座<strong>三角桁架桥</strong>，在中间压上重物，看应力云图标出哪几根杆已经亮起"红色警告"。</p>
+      </div>
+    </div>
+    <div class="cat-visual">
+      <svg viewBox="0 0 200 150" aria-label="桁架的应力云图">
+        <g fill="none" stroke-width="5" stroke-linecap="round">
+          <line x1="30" y1="100" x2="70" y2="100" stroke="#34c759"/>
+          <line x1="70" y1="100" x2="110" y2="100" stroke="#ff9500"/>
+          <line x1="110" y1="100" x2="150" y2="100" stroke="#34c759"/>
+          <line x1="30" y1="100" x2="50" y2="56" stroke="#ffcc00"/>
+          <line x1="50" y1="56" x2="90" y2="56" stroke="#ff3b30"/>
+          <line x1="90" y1="56" x2="130" y2="56" stroke="#ff9500"/>
+          <line x1="130" y1="56" x2="150" y2="100" stroke="#ffcc00"/>
+          <line x1="50" y1="56" x2="70" y2="100" stroke="#34c759"/>
+          <line x1="90" y1="56" x2="70" y2="100" stroke="#ff9500"/>
+          <line x1="90" y1="56" x2="110" y2="100" stroke="#34c759"/>
+          <line x1="130" y1="56" x2="110" y2="100" stroke="#ffcc00"/>
+        </g>
+        <g fill="#1d1d1f"><circle cx="30" cy="100" r="5"/><circle cx="150" cy="100" r="5"/></g>
+        <path d="M86 38 v12 M94 38 v12 M90 38 l-4 8 M90 38 l4 8" stroke="#ff3b30" stroke-width="2.5"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MORE MODES (bento) ============ -->
+<section class="section alt" id="more" style="--accent:#0071e3">
+  <div class="wrap reveal" style="text-align:center;max-width:680px">
+    <span class="eyebrow">更多 · 玩法与工具</span>
+    <h2 class="head">不止是搭，<br>还能玩、能录、能导出。</h2>
+  </div>
+  <div class="wrap bento reveal">
+    <div class="tile span3" style="--accent:#ff375f">
+      <div class="ti">🎯</div>
+      <h3>竞技场 / 俯视对战</h3>
+      <p>切到竞技场练操作，或进入俯视角生存对战：自动射击、闪现、友军敌军、炮弹与击杀计数，物理装置摇身一变成了游戏。</p>
+      <div class="try">边玩边懂物理 →</div>
+    </div>
+    <div class="tile span3" style="--accent:#5e5ce6">
+      <div class="ti">🚀</div>
+      <h3>关卡 · 太空任务</h3>
+      <p>跟着关卡一步步搭装置、过目标；太空任务把引力、轨道、推进串成一段旅程，目标驱动地学。</p>
+      <div class="try">从任务开始 →</div>
+    </div>
+    <div class="tile span2" style="--accent:#30d158">
+      <div class="ti">🎬</div>
+      <h3>回放</h3>
+      <p>把一次碰撞、一段机构运动录下来，慢放复盘每一帧。</p>
+    </div>
+    <div class="tile span2" style="--accent:#0071e3">
+      <div class="ti">🧪</div>
+      <h3>训练数据录制</h3>
+      <p>记录位置、速度、加速度、能量等物理量，导出 JSON / CSV，做数据分析或机器学习。</p>
+    </div>
+    <div class="tile span2" style="--accent:#af52de">
+      <div class="ti">⚙️</div>
+      <h3>运动学模式</h3>
+      <p>机构交给 mec2 数学精确求解，还能导出标准 JSON 接入 mecEdit。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INSPIRATION GALLERY ============ -->
+<section class="section" id="gallery" style="--accent:#0071e3">
+  <div class="wrap reveal" style="text-align:center;max-width:680px">
+    <span class="eyebrow">灵感 · 示例</span>
+    <h2 class="head">可以搭点什么？</h2>
+    <p class="lead" style="margin-left:auto;margin-right:auto">从五分钟的小演示，到跨模块的大装置。这里有几个起点。</p>
+  </div>
+  <div class="wrap bento reveal">
+    <div class="tile span2" style="--accent:#ff6b35">
+      <div class="ti">🚗</div>
+      <h3>会爬坡的小车</h3>
+      <p>一键生成小车，开启轮子电机，画一道斜面让它一路冲上去。</p>
+      <div class="try">力学</div>
+    </div>
+    <div class="tile span2" style="--accent:#f5a300">
+      <div class="ti">🧲</div>
+      <h3>电磁起重机</h3>
+      <p>开关 + 电磁铁，通电吸起铁块，断电稳稳放下。</p>
+      <div class="try">电学</div>
+    </div>
+    <div class="tile span2" style="--accent:#00b5d8">
+      <div class="ti">🌈</div>
+      <h3>棱镜彩虹</h3>
+      <p>让白光斜穿三棱镜，分出一道七色光谱。</p>
+      <div class="try">光学</div>
+    </div>
+    <div class="tile span2" style="--accent:#ff4d6d">
+      <div class="ti">🔔</div>
+      <h3>正态分布墙</h3>
+      <p>高尔顿板接颗粒源，几百颗球堆成一条钟形曲线。</p>
+      <div class="try">概率</div>
+    </div>
+    <div class="tile span2" style="--accent:#30d158">
+      <div class="ti">💡</div>
+      <h3>单片机流水灯</h3>
+      <p>用 <code style="font-family:var(--mono);font-size:0.85em">Q0=CLK(30)</code> 让逻辑灯一秒一闪，做一盏呼吸灯。</p>
+      <div class="try">逻辑·单片机</div>
+    </div>
+    <div class="tile span2" style="--accent:#ff9500">
+      <div class="ti">🛸</div>
+      <h3>遥控飞行器</h3>
+      <p>方块 + 螺旋桨组合为推进器，关联遥控器，按方向键开着飞。</p>
+      <div class="try">控制·推进</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSING ============ -->
+<section class="closing">
+  <div class="wrap reveal">
+    <h2>打开它，<br>开始你的实验。</h2>
+    <p class="lead">不用安装，不用配置。一个浏览器标签页，整座物理实验室就位。</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="./physics12.html">打开沙盒</a>
+      <a class="btn btn-ghost" href="#top">回到顶部</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap">
+    <p style="max-width:640px">物理沙盒 Pro 是一个面向教学与探索的浏览器物理仿真实验室。本页用于向用户介绍其功能模块，所有示例均可在沙盒中亲手复现。</p>
+    <div class="row">
+      <div>
+        <a href="#mechanics">力学</a> · <a href="#electric">电学</a> · <a href="#optics">光学</a> · <a href="#logic">逻辑·单片机</a> · <a href="#gallery">示例</a>
+      </div>
+      <div class="copy">© Nova 未来学园 (Nova Future Academy) · 版权所有</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- scroll reveal ---- */
+  var reveals = document.querySelectorAll('.reveal');
+  if (reduce || !('IntersectionObserver' in window)) {
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+    reveals.forEach(function(el){ io.observe(el); });
+  }
+
+  /* ---- hero physics canvas ---- */
+  var canvas = document.getElementById('heroCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var W=0, H=0, balls=[], mouse={x:-999,y:-999,active:false};
+  var COLORS = ['#ff6b35','#f5a300','#7c8cff','#00b5d8','#19c37d','#ff4d6d','#bf5af2','#30d158','#ff9500'];
+
+  function resize(){
+    var r = canvas.getBoundingClientRect();
+    W = r.width; H = r.height;
+    canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  function makeBalls(){
+    balls = [];
+    var n = Math.max(8, Math.min(16, Math.round(W/64)));
+    for (var i=0;i<n;i++){
+      var rad = 10 + Math.random()*16;
+      balls.push({
+        x: rad + Math.random()*(W-2*rad),
+        y: rad + Math.random()*(H*0.5),
+        vx: (Math.random()-0.5)*2.2,
+        vy: (Math.random()-0.5)*1.5,
+        r: rad,
+        c: COLORS[i % COLORS.length]
+      });
+    }
+  }
+  var G = 0.16, REST = 0.86, AIR = 0.995;
+  function step(){
+    for (var i=0;i<balls.length;i++){
+      var b = balls[i];
+      b.vy += G; b.vx *= AIR; b.vy *= AIR;
+      /* mouse repel */
+      if (mouse.active){
+        var dx=b.x-mouse.x, dy=b.y-mouse.y, d2=dx*dx+dy*dy;
+        if (d2 < 9000 && d2 > 0.1){ var f=900/d2; var d=Math.sqrt(d2); b.vx+=dx/d*f; b.vy+=dy/d*f; }
+      }
+      b.x += b.vx; b.y += b.vy;
+      if (b.x < b.r){ b.x=b.r; b.vx=-b.vx*REST; }
+      if (b.x > W-b.r){ b.x=W-b.r; b.vx=-b.vx*REST; }
+      if (b.y > H-b.r){ b.y=H-b.r; b.vy=-b.vy*REST; b.vx*=0.97; }
+      if (b.y < b.r){ b.y=b.r; b.vy=-b.vy*REST; }
+    }
+    /* pairwise collisions */
+    for (var a=0;a<balls.length;a++){
+      for (var k=a+1;k<balls.length;k++){
+        var A=balls[a], B=balls[k];
+        var nx=B.x-A.x, ny=B.y-A.y, dist=Math.hypot(nx,ny), min=A.r+B.r;
+        if (dist>0 && dist<min){
+          var ux=nx/dist, uy=ny/dist, overlap=(min-dist)/2;
+          A.x-=ux*overlap; A.y-=uy*overlap; B.x+=ux*overlap; B.y+=uy*overlap;
+          var rvx=B.vx-A.vx, rvy=B.vy-A.vy, vn=rvx*ux+rvy*uy;
+          if (vn<0){ var imp=-(1+0.8)*vn/2; A.vx-=imp*ux; A.vy-=imp*uy; B.vx+=imp*ux; B.vy+=imp*uy; }
+        }
+      }
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for (var i=0;i<balls.length;i++){
+      var b=balls[i];
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.fillStyle=b.c; ctx.globalAlpha=0.92; ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.arc(b.x-b.r*0.3,b.y-b.r*0.32,b.r*0.32,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fill();
+    }
+  }
+  var raf=null, running=false;
+  function loop(){ step(); draw(); raf=requestAnimationFrame(loop); }
+  function start(){ if(!running){ running=true; loop(); } }
+  function stop(){ running=false; if(raf) cancelAnimationFrame(raf); }
+
+  function rel(e){
+    var r=canvas.getBoundingClientRect();
+    var p = e.touches ? e.touches[0] : e;
+    mouse.x=p.clientX-r.left; mouse.y=p.clientY-r.top; mouse.active=true;
+  }
+  canvas.addEventListener('mousemove', rel);
+  canvas.addEventListener('touchmove', function(e){ rel(e); }, {passive:true});
+  canvas.addEventListener('mouseleave', function(){ mouse.active=false; });
+  canvas.addEventListener('touchend', function(){ mouse.active=false; });
+
+  resize(); makeBalls();
+  window.addEventListener('resize', function(){ resize(); makeBalls(); });
+
+  if (reduce){ draw(); return; }
+  /* pause when offscreen */
+  if ('IntersectionObserver' in window){
+    var vo = new IntersectionObserver(function(es){
+      es.forEach(function(e){ e.isIntersecting ? start() : stop(); });
+    }, {threshold:0.05});
+    vo.observe(canvas);
+  } else { start(); }
+})();
+</script>
+</body>
+</html>
