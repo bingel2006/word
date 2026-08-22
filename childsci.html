@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>北京带小学生 · 科普与户外年历</title>
+<style>
+:root{
+  --paper:#E6EAE5;
+  --card:#F8F9F6;
+  --ink:#1A211D;
+  --ink-2:#4C5852;
+  --ink-3:#7C8880;
+  --rule:#C7CFC7;
+  --rule-soft:#D8DED7;
+  --pine:#2E5A4E;
+  --pine-tint:#DDE6E0;
+  --nature:#2E5A4E;
+  --venue:#5F4470;
+  --lecture:#3B5266;
+  --event:#9C3A2C;
+  --club:#87641C;
+  --focus:#1F6F5C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.serif{font-family:"Songti SC","Noto Serif SC","Source Han Serif SC",STSong,serif}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- 版心 ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* ---------- 页眉 ---------- */
+header{padding:46px 0 30px;border-bottom:1px solid var(--rule)}
+.eyebrow{
+  font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:16px;
+}
+h1{
+  font-family:"Songti SC","Noto Serif SC",STSong,serif;
+  font-size:clamp(34px,6vw,58px);
+  font-weight:700;line-height:1.08;letter-spacing:-.01em;
+}
+h1 .light{color:var(--ink-3);font-weight:400}
+.lede{margin-top:18px;max-width:48ch;color:var(--ink-2);font-size:15px}
+.tally{
+  margin-top:24px;display:flex;flex-wrap:wrap;gap:0;
+  border-top:1px solid var(--rule-soft);
+}
+.tally div{
+  padding:12px 26px 4px 0;margin-right:26px;
+  border-right:1px solid var(--rule-soft);
+}
+.tally div:last-child{border-right:0}
+.tally b{display:block;font-size:26px;font-weight:600;line-height:1.1}
+.tally span{font-size:11.5px;color:var(--ink-3);letter-spacing:.08em}
+
+/* ---------- 主体 ---------- */
+.main{display:grid;grid-template-columns:210px 1fr;gap:0;align-items:start}
+@media(max-width:860px){.main{grid-template-columns:1fr}}
+
+/* ---------- 物候尺（签名元素） ---------- */
+.rail{
+  position:sticky;top:0;padding:26px 22px 40px 0;
+  border-right:1px solid var(--rule);
+}
+.rail-title{
+  font-size:11px;letter-spacing:.22em;color:var(--ink-3);
+  padding-bottom:12px;margin-bottom:6px;border-bottom:1px solid var(--rule-soft);
+}
+.mo{
+  display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:baseline;
+  width:100%;text-align:left;background:none;border:0;cursor:pointer;
+  padding:7px 8px 7px 0;color:var(--ink-2);
+  border-bottom:1px solid transparent;
+  font:inherit;
+}
+.mo:hover{color:var(--ink)}
+.mo .tick{
+  font-family:ui-monospace,Menlo,monospace;font-size:11px;
+  color:var(--ink-3);letter-spacing:.02em;
+}
+.mo .nm{font-family:"Songti SC","Noto Serif SC",serif;font-size:17px;font-weight:600}
+.mo .ph{display:block;font-size:11px;color:var(--ink-3);line-height:1.45;margin-top:1px}
+.mo .ct{
+  font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--ink-3);
+  float:right;
+}
+.mo[aria-pressed="true"]{color:var(--pine)}
+.mo[aria-pressed="true"] .tick{color:var(--pine);font-weight:700}
+.mo[aria-pressed="true"] .nm{color:var(--pine)}
+.mo[aria-pressed="true"] .ph{color:var(--pine)}
+.mo[aria-pressed="true"]::before{
+  content:"";position:absolute;left:-1px;width:3px;height:20px;background:var(--pine);
+  margin-top:4px;
+}
+.mo{position:relative}
+.rail .all{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--rule-soft);
+}
+@media(max-width:860px){
+  .rail{
+    position:static;border-right:0;border-bottom:1px solid var(--rule);
+    padding:18px 0;overflow-x:auto;white-space:nowrap;
+    display:flex;gap:6px;align-items:stretch;
+    -webkit-overflow-scrolling:touch;
+  }
+  .rail-title{display:none}
+  .mo{
+    display:inline-block;width:auto;flex:0 0 auto;
+    border:1px solid var(--rule);border-radius:2px;padding:7px 12px;
+  }
+  .mo .tick{display:none}
+  .mo .ph{display:none}
+  .mo .ct{float:none;margin-left:6px}
+  .mo[aria-pressed="true"]{background:var(--pine);color:#fff;border-color:var(--pine)}
+  .mo[aria-pressed="true"] .nm,.mo[aria-pressed="true"] .ct{color:#fff}
+  .mo[aria-pressed="true"]::before{display:none}
+  .rail .all{margin:0;padding:0;border:0}
+}
+
+/* ---------- 内容区 ---------- */
+.panel{padding:26px 0 70px 34px}
+@media(max-width:860px){.panel{padding:22px 0 60px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:6px}
+.chip{
+  font:inherit;font-size:12.5px;cursor:pointer;
+  padding:5px 13px;border-radius:100px;
+  border:1px solid var(--rule);background:transparent;color:var(--ink-2);
+}
+.chip:hover{border-color:var(--ink-3)}
+.chip .dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:6px;vertical-align:1px;
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.spacer{flex:1}
+.toggle{
+  font:inherit;font-size:12.5px;cursor:pointer;padding:5px 13px;
+  border:1px solid var(--rule);border-radius:100px;background:transparent;color:var(--ink-2);
+}
+.toggle[aria-pressed="true"]{background:var(--pine);color:#fff;border-color:var(--pine)}
+
+.status{
+  font-size:12px;color:var(--ink-3);margin:16px 0 14px;
+  padding-bottom:10px;border-bottom:1px solid var(--rule-soft);
+  letter-spacing:.03em;
+}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1px;background:var(--rule-soft)}
+.grid{border:1px solid var(--rule-soft)}
+.item{
+  background:var(--card);border:0;text-align:left;font:inherit;color:inherit;
+  cursor:pointer;padding:17px 18px 15px;display:flex;flex-direction:column;gap:8px;
+  min-height:150px;transition:background .12s;
+}
+.item:hover{background:#fff}
+.item .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.item .kind{
+  font-size:10.5px;letter-spacing:.14em;font-weight:600;
+}
+.item .cost{
+  font-family:ui-monospace,Menlo,monospace;font-size:10px;
+  border:1px solid currentColor;padding:0 5px;border-radius:2px;line-height:16px;
+}
+.cost.f{color:var(--pine)}
+.cost.p{color:var(--ink-3)}
+.item h3{
+  font-family:"Songti SC","Noto Serif SC",serif;
+  font-size:19px;font-weight:600;line-height:1.35;letter-spacing:.01em;
+}
+.item p{font-size:12.8px;color:var(--ink-2);line-height:1.65;flex:1}
+.item .when{
+  font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--ink-3);
+  letter-spacing:.04em;
+}
+.empty{padding:60px 4px;color:var(--ink-3);font-size:14px;background:var(--card)}
+.empty b{display:block;font-size:17px;color:var(--ink);margin-bottom:6px}
+.empty .serif{font-family:"Songti SC",serif}
+
+/* ---------- 详情抽屉 ---------- */
+.scrim{
+  position:fixed;inset:0;background:rgba(20,28,24,.42);
+  opacity:0;pointer-events:none;transition:opacity .22s;z-index:40;
+}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;top:0;right:0;height:100%;width:min(470px,100%);
+  background:var(--card);z-index:50;overflow-y:auto;
+  transform:translateX(102%);transition:transform .26s cubic-bezier(.3,.7,.3,1);
+  border-left:1px solid var(--rule);
+}
+.sheet.on{transform:none}
+@media(max-width:560px){
+  .sheet{width:100%;height:88%;top:auto;bottom:0;border-left:0;border-top:1px solid var(--rule);
+    transform:translateY(102%);border-radius:6px 6px 0 0}
+  .sheet.on{transform:none}
+}
+.sheet-in{padding:26px 26px 60px}
+.sheet .close{
+  position:sticky;top:0;float:right;margin:-4px -6px 0 0;
+  background:var(--card);border:1px solid var(--rule);border-radius:100px;
+  width:32px;height:32px;cursor:pointer;font-size:15px;color:var(--ink-2);line-height:1;
+}
+.sheet .kind{font-size:10.5px;letter-spacing:.14em;font-weight:600;display:block;margin-bottom:9px}
+.sheet h2{
+  font-family:"Songti SC","Noto Serif SC",serif;font-size:27px;font-weight:600;
+  line-height:1.3;margin-bottom:6px;
+}
+.sheet .sub{font-size:13px;color:var(--ink-2);margin-bottom:20px}
+dl.facts{border-top:1px solid var(--rule-soft);margin-bottom:20px}
+dl.facts>div{
+  display:grid;grid-template-columns:74px 1fr;gap:14px;
+  padding:9px 0;border-bottom:1px solid var(--rule-soft);
+}
+dl.facts dt{font-size:11.5px;color:var(--ink-3);letter-spacing:.1em;padding-top:2px}
+dl.facts dd{font-size:13.5px;line-height:1.6}
+.sheet h4{
+  font-size:11px;letter-spacing:.2em;color:var(--ink-3);
+  margin:22px 0 9px;font-weight:600;
+}
+.sheet ul{list-style:none}
+.sheet ul li{
+  font-size:13.5px;line-height:1.7;padding-left:16px;position:relative;margin-bottom:7px;
+}
+.sheet ul li::before{
+  content:"";position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ink-3);
+}
+.warn{
+  margin-top:20px;padding:13px 15px;background:#F3EDE6;
+  border-left:2px solid var(--event);font-size:13px;line-height:1.65;color:#5B3B33;
+}
+.warn b{color:var(--event)}
+
+footer{
+  border-top:1px solid var(--rule);padding:26px 0 54px;
+  font-size:12px;color:var(--ink-3);line-height:1.8;
+}
+footer b{color:var(--ink-2)}
+
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Beijing · 小学生 · 科普与户外</div>
+  <h1>什么时候<span class="light">，</span><br>带孩子去哪里<span class="light">。</span></h1>
+  <p class="lede">北京的科普资源高度跟着季节走：候鸟四月北归，研究所五月开门，机器人八月进城，银杏十月落地。按月份挑，比按名单挑省事。</p>
+  <div class="tally">
+    <div><b class="mono" id="tTotal">0</b><span>条目</span></div>
+    <div><b class="mono" id="tFree">0</b><span>免费</span></div>
+    <div><b class="mono">5</b><span>类型</span></div>
+    <div><b class="mono">2026</b><span>核对于 08 月</span></div>
+  </div>
+</header>
+
+<div class="main">
+
+  <nav class="rail" id="rail" aria-label="按月份筛选">
+    <div class="rail-title">物候尺</div>
+  </nav>
+
+  <section class="panel">
+    <div class="controls" id="chips"></div>
+    <div class="controls" style="margin-top:7px">
+      <button class="toggle" id="freeBtn" aria-pressed="false">只看免费</button>
+      <span class="spacer"></span>
+      <button class="toggle" id="resetBtn">重置</button>
+    </div>
+
+    <p class="status" id="status"></p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+</div>
+
+<footer>
+  <b>使用说明</b>　点左侧月份看当月，点类型标签叠加筛选，点卡片看地址、预约方式和坑。<br>
+  <b>信息时效</b>　核对于 2026 年 8 月。开放时间、放号规则、票价随时会变，出发前请再查一次场馆官方公众号。标注「待确认」的条目务必先打电话。<br>
+  <b>两条通则</b>　绝大多数博物馆周一闭馆；教育部白名单赛事不向学生收费，任何「包拿国奖」都是诈骗。
+</footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">
+  <div class="sheet-in" id="sheetIn"></div>
+</aside>
+
+<script>
+const KINDS = {
+  nature : {label:"自然 · 户外", color:"var(--nature)"},
+  venue  : {label:"场馆 · 博物馆", color:"var(--venue)"},
+  lecture: {label:"讲座 · 课程", color:"var(--lecture)"},
+  event  : {label:"展会 · 赛事", color:"var(--event)"},
+  club   : {label:"社团 · 协会", color:"var(--club)"}
+};
+
+const MONTHS = [
+  {n:1,  name:"一月",  ph:"寒假 · 室内场馆季"},
+  {n:2,  name:"二月",  ph:"湿地日 · 越冬水鸟"},
+  {n:3,  name:"三月",  ph:"候鸟北归 · 科幻大会"},
+  {n:4,  name:"四月",  ph:"爱鸟周 · 航天日"},
+  {n:5,  name:"五月",  ph:"公众科学日 · 科技周"},
+  {n:6,  name:"六月",  ph:"雨燕育雏 · 昼最长"},
+  {n:7,  name:"七月",  ph:"暑假 · 午后雷暴"},
+  {n:8,  name:"八月",  ph:"机器人大会 · 英仙座"},
+  {n:9,  name:"九月",  ph:"科普日 · 服贸会 · 秋迁"},
+  {n:10, name:"十月",  ph:"银杏 · 徒步黄金期"},
+  {n:11, name:"十一月", ph:"机器人大赛 · 雁鸭抵京"},
+  {n:12, name:"十二月", ph:"冬至 · 观鸟视野最好"}
+];
+
+const ALL = [1,2,3,4,5,6,7,8,9,10,11,12];
+
+const DATA = [
+
+/* ============ 讲座 · 课程 ============ */
+{k:"lecture",n:"首都科学讲堂",m:ALL,free:1,when:"常年 · 每周",
+ s:"北京市科协主办，主讲多为院士和研究员，线上同步直播。节假日会做专题系列，比如节日民俗里的科学。",
+ f:{"主办":"北京市科学技术协会","对象":"全年龄段开放","费用":"免费","关注":"微信公众号「数字北京科学中心」"},
+ pts:["线下场次常设在北京科学中心，去不了可以看直播回放。","寒暑假会集中排专题，一次能连听好几场。"]},
+
+{k:"lecture",n:"北京科学中心",m:ALL,free:1,when:"常年 · 寒暑假加场",
+ s:"老中国科技馆改建，免费预约制。除展厅外，寒暑假集中推出几百场科学实验、科学表演、主题课程和展厅主题讲解。",
+ f:{"地址":"西城区北辰路 9 号院（安华桥西北角）","费用":"免费预约","分区":"「三生」主展区面向学龄儿童；儿童乐园 4 号楼面向 3–10 岁","场次":"分上午场、下午场"},
+ pts:["儿童乐园是独立一栋三层楼，水漩涡、阿基米德螺旋、喊泉、水柱顶球都能上手。","二层大型机械组是标志展项，六组提球机械配六个手摇曲柄，讲机械传动最直观。","场馆提供免费热水和储物柜，可以待一整天。"]},
+
+{k:"lecture",n:"国家图书馆少年儿童馆",m:ALL,free:1,when:"常年",
+ s:"面向 6–15 岁，讲座与到馆活动都要凭同一个预约码参加。",
+ f:{"地址":"海淀区中关村南大街 33 号，总馆北区一层北侧","预约":"微信公众号「国家图书馆服务号」→ 读者服务","放号":"当天及未来三天，微信 9:00–21:00","费用":"免费"},
+ pts:["国图总馆和国家典籍博物馆本身入馆不需要预约，只有少儿馆需要，别搞混。","「四季童读」每季度发一次推荐书单，含科普类，可以照着借。"]},
+
+{k:"lecture",n:"首都图书馆 · 阅读北京少儿学堂",m:ALL,free:1,when:"常年 · 暑期最密",
+ s:"主讲多是科普作者和一线科研人员，气象、数学史、化学史方向都有。2026 暑期一口气推了近 380 场活动。",
+ f:{"馆址":"华威桥馆 / 北京城市图书馆（副中心）/ 大兴机场分馆","费用":"免费","板块":"少儿阅读、名家讲坛、古卷匠心、视听美育"},
+ pts:["北京城市图书馆本身的建筑（森林书苑、银杏树状立柱）就值得专门去一趟。","名家讲坛偶尔会请到气象局、中科院自然科学史所的研究员，含金量高于普通亲子讲座。"]},
+
+/* ============ 场馆 · 博物馆 ============ */
+{k:"venue",n:"国家自然博物馆",m:ALL,free:1,when:"常年 · 周一闭馆",
+ s:"免费但要预约，个人票每日 11:00 放号，手慢无。",
+ f:{"放号":"个人每日 11:00，团队每日 10:00","开放":"9:00–17:00，16:30 停止入馆，周一闭馆","时段":"9:00–11:00 / 11:00–14:00 / 14:00–17:00","费用":"免费（部分特展另收费）"},
+ pts:["特展通常单独售票，比如「鲸·奇」海洋特展是 39 元，和免费常设展分开。","环球自然日北京赛区由这里承办，五月来可以顺便看学生作品展。"]},
+
+{k:"venue",n:"中国科技馆",m:ALL,free:2,when:"常年 · 提前 7 日订票",
+ s:"主展厅需买票，但 8 周岁以下或身高 1.3 米以下有成人陪同的儿童免费。进馆后日均 220 余场活动不额外收费。",
+ f:{"地址":"朝阳区北辰东路 5 号（地铁 8 号线森林公园南门站）","票价":"主展厅 30 元；学生 20 元","免票":"8 周岁（含）以下或 1.3 米（含）以下儿童，1 名成人限带 3 名","订票":"提前 7 日 18:00 开始","动线":"西门安检进，东门出"},
+ pts:["「科学乐园」展厅（3–10 岁）是单独收费的 30 元，不含在主展厅票里，容易买错。","特定节日免费：9 月 10 日教师凭教师证，重阳节 60 岁以上老人。","球幕、巨幕、动感、4D 影院都是单独 30 元。"]},
+
+{k:"venue",n:"北京天文馆",m:ALL,free:2,when:"常年",
+ s:"A 馆天象厅是我国大陆最大的地平式天象厅，蔡司九型光学天象仪加全天域数字投影，能还原肉眼可见的 9000 余颗恒星。",
+ f:{"地址":"西城区西直门外大街 138 号","A 馆":"天象厅（8K 球幕，虚拟天象、三维宇宙空间模拟）","B 馆":"宇宙剧场、4D、3D、3 个科普剧场、天文展厅、太阳观测台、大众天文台、天文教室"},
+ pts:["展厅票和天象节目票分开卖，天象厅节目容易售罄，提前订。","太阳观测台和大众天文台是「看真东西」的部分，很多人只逛展厅就走了，可惜。","隔壁就是北京动物园，可以并成一天。"]},
+
+{k:"venue",n:"中关村国家自主创新示范区展示中心",m:ALL,free:1,when:"每周六",
+ s:"个人只能周六去，展的是人工智能、商业航天、量子科技、高端医疗器械这些前沿方向，560 余项技术与产品。",
+ f:{"开放":"周六公众开放日 9:00–11:30 / 14:00–16:30","闭馆":"周日；周一至周五仅接待团体预约","费用":"免费","规模":"常设展约 1 万平方米，350 多家单位参展"},
+ pts:["展品更新快，隔一年再去内容会有明显变化。","适合已经对科技有兴趣的高年级孩子，低幼可能看不懂。"]},
+
+{k:"venue",n:"北京航空航天博物馆",m:ALL,free:1,when:"常年 · 待确认时段",
+ s:"北航校内，中国第一座向公众开放的综合性航空科技博物馆。300 多件航空航天文物精品——有真飞机。",
+ f:{"地址":"海淀区学院路 37 号，北航学院路校区内","展区":"长空逐梦、银鹰巡空、神舟问天、空天走廊","费用":"全程免费","预约":"微信公众号「北航校史与文博馆」","建议时长":"2–3 小时"},
+ pts:["从北航学院路校区新东门进最近，步行五分钟。","场馆无公共储物柜，轻装去。","工作日人少，体验最好。"],
+ warn:"校外公众开放时段各渠道说法不一（有说周二、周六上午，有说周一至周六 9:00–16:30 实名登记即可），<b>去之前务必打电话或看公众号确认</b>。另外官方已声明：参观讲解均为公益免费，任何有偿研学预约都与本馆无关。"},
+
+{k:"venue",n:"中国航天博物馆",m:ALL,free:1,when:"常年 · 周一闭馆",
+ s:"隶属中国运载火箭技术研究院，国内唯一国家级航天专业博物馆，试运营期间免费预约。",
+ f:{"地址":"丰台区大红门 1 号","开放":"周二至周日 9:00–16:30（16:00 停止入馆），周一闭馆","预约":"微信公众号「中国航天博物馆」，提前 3 天、每日 9:00 更新","费用":"标价 30 元，试运营期间免费预约"},
+ pts:["展陈含航天历史与精神、导弹武器、运载火箭、人造卫星、载人航天、深空探测。","早年资料写「周末闭馆」已过时，以最新公告为准。","暴雨天气会临时闭馆，夏天出发前看一眼公众号。"]},
+
+{k:"venue",n:"中国消防博物馆",m:ALL,free:1,when:"待确认是否恢复开放",
+ s:"国内唯一国家级消防主题博物馆。一层防火防灾体验厅有火灾、地震、暴风雨应急避险的复原场景，互动性极强。",
+ f:{"规模":"共 3 层，展陈面积 12000 平方米","一层":"序厅、防火防灾体验厅（多媒体复原场景 + 体验展区）","二层":"文化传承、烈火荣光、消防救援队伍组建、对外交流、特展","原开放":"周三至周日 9:00–17:00，周一二及法定节假日闭馆"},
+ warn:"该馆曾于 <b>2025 年 1 月 1 日起闭馆做整体改陈升级</b>，我没查到确认恢复开放的通知。<b>务必先查官方通知，别白跑。</b>"},
+
+{k:"venue",n:"军事博物馆",m:[7,8],free:1,when:"暑期 · 每日两次放票",
+ s:"暑期开放到 8 月 31 日，回流票机制，抢票是关键。",
+ f:{"放票":"每日 9:00 和 17:00 放次日回流票","入馆":"须携带预约证件原件，按预约时段到馆","费用":"免费"},
+ pts:["两个放票时间点都要盯，17:00 那场通常比 9:00 好抢一点。","武器装备实物是最大看点，孩子对坦克飞机的兴趣基本不用培养。"]},
+
+{k:"venue",n:"中国古动物馆",m:ALL,free:2,when:"常年",
+ s:"中科院古脊椎动物与古人类研究所下属，讲古鱼类、恐龙、古人类。体量不大但专业度极高。",
+ f:{"地址":"西城区西外大街（近动物园、天文馆）","适合":"已经对恐龙有兴趣、想再往深走一层的孩子","费用":"低价票"},
+ pts:["和中国地质博物馆是两家不同的馆，别搞混。","可以和北京天文馆、北京动物园串成西直门一日线。"],
+ warn:"具体票价和开放时间请以官方公众号为准，我未逐项核实。"},
+
+{k:"venue",n:"北京古建筑博物馆（先农坛）",m:ALL,free:2,when:"常年",
+ s:"科普角度的看点是古建力学：斗拱怎么承重、藻井怎么搭、屋面怎么排水。",
+ f:{"地址":"西城区东经路 21 号，先农坛内","看点":"隆福寺藻井、斗拱结构模型、明清坛庙营造"},
+ pts:["可以和景山公园的物理化学互动展台、颐和园的斗拱模型拼插活动串成一条「古建里的科学」线。","先农坛本身是明清皇家祭农场所，人文和科学两头都能讲。"]},
+
+{k:"venue",n:"中国地质博物馆",m:ALL,free:1,when:"常年",
+ s:"矿物晶体、宝石、恐龙化石。和周口店、延庆地质公园可以串成一条地质线。",
+ f:{"地址":"西城区西四羊肉胡同 15 号","费用":"免费需预约"},
+ pts:["矿物晶体厅的视觉冲击力对小学生很有效，比化石更容易入门。"],
+ warn:"预约规则以官方公众号为准。"},
+
+{k:"venue",n:"北京公交馆",m:ALL,free:1,when:"周二至周六",
+ s:"小众但对痴迷交通工具的孩子是杀器。免费，要抢票。",
+ f:{"开放":"周二至周五 9:00–11:30 / 14:00–16:30；周六 9:00–11:30 / 13:00–15:30","闭馆":"周一、周日","预约":"微信公众号「北京公交集团」，提前 7 天、每天 8 点放票","费用":"免费"}},
+
+{k:"venue",n:"麋鹿苑（南海子）",m:ALL,free:1,when:"常年 · 周一闭馆",
+ s:"户外生态博物馆，占地约 55 万平方米。把科普做成了可以走进去的装置。",
+ f:{"全称":"北京麋鹿生态实验中心 / 南海子麋鹿苑博物馆","地址":"大兴区南海子","开放":"周二至周日 9:00–16:00，周一闭馆","预约":"微信公众号「麋鹿苑」→ 门票预约","费用":"免费"},
+ pts:["世界唯一的「灭绝动物公墓」、东方护生壁画、绿色迷宫、观鹿台。","可观测野生小型哺乳动物约 40 种、鸟类约 80 种、乡土植物约 200 种。","品牌活动：小小自然讲解员培训、小小科学家科学探索实验室、自然大讲堂。","苑内湿地近 500 亩，震旦鸦雀在草坪上踱步不稀奇，顺带就是一次观鸟。"],
+ warn:"进苑免费，但园内<b>「科普体验区」（喂小鹿）是单独收费项目，50 元/人</b>，一位成人可免费带一位 1.4 米以下儿童。这是可选项，别误以为整个麋鹿苑收费。"},
+
+/* ============ 自然 · 户外 ============ */
+{k:"nature",n:"观鸟",m:[1,2,3,4,5,9,10,11,12],free:1,when:"3–5 月 / 10–2 月最佳",
+ s:"北京记录鸟种高达 519 种，占全国三分之一以上，在 G20 国家首都中位居第二。门槛低、互动强、几乎零成本。",
+ f:{"野鸭湖":"327+ 种，北京唯一湿地鸟类自然保护区（延庆）","南海子公园":"233+ 种，北京最大湿地公园（大兴）","百望山":"207+ 种，距市区最近的森林公园（海淀）","松山":"190+ 种，国家级自然保护区（延庆）","装备":"双筒望远镜 +《常见野鸟图鉴·北京地区》"},
+ pts:["方法：先听声音定方位 → 肉眼锁定 → 望远镜看细节。拿着望远镜在树下转圈是找不到鸟的。","春季 3–5 月是繁殖羽最漂亮的时候，冬季植被稀疏最好找。","市区内百望山最省事，半天来回。","《常见野鸟图鉴·北京地区》由高武主编，700 多张彩图、315 种北京常见鸟，北京观鸟圈几乎人手一本。"],
+ warn:"文明观鸟：与野鸟保持距离，不投喂、不诱拍、不驱赶。遇到弹弓打鸟、诱捕、贩卖的行为，在确认自身安全的前提下报警。"},
+
+{k:"nature",n:"国家植物园（原北京植物园）",m:[3,4,5,6,9,10],free:2,when:"春秋最佳",
+ s:"已挂牌国家植物园，分北园、南园。北园有展览温室和科普馆。",
+ f:{"地址":"海淀区香山路（北园）","咨询":"010-82598771","活动":"公众号不定期发免费亲子活动招募"},
+ pts:["暑期自然探索营是收费项目，和免费招募活动别混淆。","低温温室在夏天是避暑点，正午安排在室内比较舒服。"]},
+
+{k:"nature",n:"北京动物园",m:ALL,free:2,when:"常年",
+ s:"6 周岁（含）或身高 1.2 米（含）以下儿童由成年人带领免费入园。园内科普馆常被忽略。",
+ f:{"免票":"6 周岁或 1.2 米以下儿童（需成人带领）","活动":"微信公众号「保护教育」线上招募","看点":"水禽湖春季繁殖行为、极危物种青头潜鸭"},
+ pts:["保护教育部门的活动质量不错：通过教具、模型、展板和视频讲鸟巢形态、乡土植物、卵的发育。","春季水禽湖是观鸟宝地，选址筑巢、求偶炫耀都能看到。"]},
+
+{k:"nature",n:"郊野徒步 · 八条线",m:[3,4,5,6,9,10,11],free:1,when:"春秋最佳 · 避开盛夏午后",
+ s:"单程 5 公里、爬升 300 米、全程 6 小时内，自然地质与人文景观兼有，可含困难路段但不进未开发景区。",
+ f:{"路线":"长峪城（车停老峪沟山顶停车场）· 京西古道 · 妙峰山涧沟村南尖环线 · 广化寺环线 · 天狼之眼 · 黑市秘境 · 慕田峪长城 · 水长城"},
+ pts:["给每条线加一个科普锚点，孩子会更投入：京西古道看蹄窝与岩石风化；长城线看城砖烧制与排水设计；山区线带一本《北京自然观察手册》认植物。","夏季注意蜱虫；山区午后雷雨来得快，下午三点前应该开始下撤。","秋冬远离市区光污染后，山里可以顺带看星。"]},
+
+{k:"nature",n:"京郊观星",m:[7,8,12,1],free:1,when:"8 月中旬英仙座 · 冬季夜长",
+ s:"出城两小时就能摆脱光污染。英仙座流星雨在 8 月中旬，猎户座冬季高悬，肉眼可见。",
+ f:{"地点":"配合徒步路线选，怀柔、延庆、密云方向为主","装备":"红光手电（保护暗适应）、防潮垫、厚外套","App":"星图类 App 认星座"},
+ pts:["山里夜温比市区低很多，八月也要带厚外套。","别用白光手电，会毁掉全队半小时的暗适应。","北京天文馆的大众天文台和太阳观测台是城里的替代方案。"]},
+
+{k:"nature",n:"市属公园生态科普沙龙",m:ALL,free:1,when:"常年 · 月度招募",
+ s:"天坛等公园邀请园林、历史、生态领域专家开生态科普沙龙，配观鸟、绘自然笔记、观察鸟巢等互动区。",
+ f:{"招募":"官方公众号线上公开招募","名额":"部分场次专招 10 组亲子家庭（孩子 8–12 岁）","费用":"活动免费，需入园票","查询":"北京市公园管理中心官网月度活动预告"},
+ pts:["颐和园的「颐和微科普」、北京动物园的「保护教育」都是各自的报名入口。","名额少，放出来就抢，提前一两周开始盯公众号推送。"]},
+
+{k:"nature",n:"周口店北京人遗址 / 延庆世界地质公园",m:[4,5,6,9,10],free:2,when:"春秋",
+ s:"户外版的古生物课。延庆地质公园有硅化木和恐龙足迹化石点。",
+ f:{"周口店":"房山区，北京猿人化石发现地","延庆":"世界地质公园，硅化木、恐龙足迹"},
+ pts:["和中国古动物馆、中国地质博物馆串成一条「从展柜到野外」的地质线，孩子对化石的理解会完全不同。"]},
+
+/* ============ 社团 · 协会 ============ */
+{k:"club",n:"自然之友野鸟会",m:ALL,free:1,when:"常年 · 一年约 200 场",
+ s:"1996 年成立。现在一年约两百场观鸟活动，直接参与逾三千人次，参与者上至老人下至小学生，公众免费参加。",
+ f:{"固定场所":"北京稳定发展 8 处，除西山外均为市内公园","领队":"每处有相对固定的资深成员担任领队","费用":"公众免费参加","计划":"每年发布京郊、外埠观鸟活动及讲座计划"},
+ pts:["典型形式：约在公园门口集合（比如天坛公园西门），领队清点人数后带队认鸟。","队伍里既有背长焦的资深鸟人，也有第一次来的新手，不用担心跟不上。","下设「北京迁徙猛禽监测调查项目」，秋季观猛禽是最震撼的场次，运气好能看到千只猛禽过境的「鹰河」。"],
+ warn:"活动计划通过自然之友官方渠道发布（微信服务号 fon-home），报名要提前，热门场次名额有限。"},
+
+{k:"club",n:"山水自然保护中心 · 公民科学",m:ALL,free:1,when:"常年 · 分项目",
+ s:"2007 年在海淀注册。公民科学是它的主要工作方法之一，普通人可以真的参与到数据采集里。",
+ f:{"可参与项目":"自然观察节、传粉昆虫调查、「貉以为家」城市小兽调查、城市建筑鸟撞问题调查","北京在地":"奥林匹克森林公园本杰士堆、八达岭友谊林、温榆河公园动植物调查","工具":"「自然观察」网站和手机 App，可提交并查看记录","官网":"shanshui.org"},
+ pts:["和一般亲子活动的区别在于：孩子提交的数据是真的进数据库的，不是走过场。","鸟撞调查这类项目在城市里就能做，不需要跑远。","本杰士堆是给城市野生动物和昆虫做的躲避与觅食空间，搭建活动本身就是一堂生态课。"]},
+
+{k:"club",n:"自然之友 · 无痕山林小组",m:[3,4,5,6,9,10,11],free:1,when:"配合徒步季",
+ s:"推广 LNT（Leave No Trace）无痕山林理念，面向公众、学校、社区、景区、户外品牌开展活动。",
+ f:{"母机构":"自然之友，1993 年成立，志愿者累计超 30000 人","对象":"公众、企业、社区、学校、赛事展会、公园、景区","费用":"公益活动"},
+ pts:["和你已有的徒步路线是天然搭配：孩子学会「把垃圾带下山」比听十次环保课有用。","LNT 七原则可以直接做成徒步前的家庭小任务。"]},
+
+{k:"club",n:"自然之友 · 湿地保护小组",m:ALL,free:1,when:"常年",
+ s:"走河、净滩、导赏、湿地植物观察、河湿讲堂。从水的视角看城市生态。",
+ f:{"活动形式":"走河、净滩、湿地导赏、湿地植物调查、室内讲坛","联系":"自然之友微信服务号 fon-home / 官网 fon.org.cn"},
+ pts:["「走河」是沿着一条城市河流走完一段，看它从哪来到哪去，比在公园看水有意思得多。","净滩这类活动孩子参与门槛最低，成就感最直接。"]},
+
+{k:"club",n:"中国观鸟记录中心",m:ALL,free:1,when:"常年 · 线上",
+ s:"全国观鸟记录提交平台，有地区记录统计和年度达人排行榜。让孩子建立自己的鸟种清单。",
+ f:{"网址":"birdreport.cn","建议浏览器":"Chrome / Firefox / Edge","费用":"免费"},
+ pts:["每次观鸟回来一起录记录，一年下来是一份真实的科研贡献 + 孩子的成长档案。","可以查北京各区的鸟种统计，出门前做功课用。","记录提交有规则要求，第一次录之前先看一下提交规范。"]},
+
+{k:"club",n:"北京猛禽救助中心",m:ALL,free:1,when:"关注开放日",
+ s:"国内第一家由高校、政府主管部门与民间机构合作成立的野生动物专项救助机构，就在北三环内。",
+ f:{"位置":"北三环内（北京师范大学院内）","性质":"猛禽救助与野化放归"},
+ pts:["放归活动和开放日不定期，需要关注其发布渠道。","对已经开始观猛禽的孩子来说，看到救助流程是完全不同层次的体验。"],
+ warn:"该机构以救助工作为主，公众开放场次有限且不定期，<b>不要贸然上门</b>，先通过官方渠道确认。"},
+
+{k:"club",n:"公园系统的爱好者活动",m:ALL,free:1,when:"常年 · 月度招募",
+ s:"公园自己的科普团队办的活动，质量往往高于外包研学，而且免费。",
+ f:{"颐和园":"微信公众号「颐和微科普」报名","北京动物园":"微信公众号「保护教育」报名","形式":"宣教员带队讲鸟类分类与习性，指导完成自然笔记"},
+ pts:["自然笔记这个形式特别适合小学生：画 + 写，把观察固定下来。","公园系统的宣教员是专职做这个的，讲解水平稳定。"]},
+
+{k:"club",n:"天文社团与公众观测",m:ALL,free:1,when:"常年",
+ s:"全国天文社团有一千三百多个在册，北京的高校和中学社团不少会办对外观测活动。",
+ f:{"城内设施":"北京天文馆的大众天文台、太阳观测台","查询":"知乎长期维护的「全国天文社团组织名单」，按省市分列并标注停办状态"},
+ pts:["高校社团的观测活动常在校内，需要提前联系；中学社团一般只对本校。","比起加入社团，更现实的路径是先用北京天文馆的公众观测设施起步。"],
+ warn:"社团信息变动频繁（名单里标了大量「停办」「注销」），联系前先确认还在运作。"},
+
+/* ============ 展会 · 赛事 ============ */
+{k:"event",n:"世界湿地日",m:[2],free:1,when:"2 月 2 日前后",
+ s:"各湿地公园和保护区会办主题活动。冬季正好是水鸟最集中的时候。",
+ f:{"时间":"每年 2 月 2 日","地点":"野鸭湖、汉石桥、翠湖等湿地"},
+ pts:["冬季植被稀疏，是一年中观察雁鸭最容易的时候，大天鹅、豆雁、赤麻鸭、绿头鸭都常见。"]},
+
+{k:"event",n:"中国科幻大会 + 科幻博览会",m:[3],free:1,when:"3 月底 · 三天",
+ s:"中国科协和北京市政府共同主办，提前预约免费入场。互动密度在所有大型活动里排前列。",
+ f:{"时间":"每年 3 月下旬（2026 年为 3 月 27–29 日）","地点":"石景山首钢园（地铁 11 号线新首钢站出站即达）","票":"提前预约免费入场","板块":"开幕式、论坛会议、产业促进、群众性活动 4 个板块 20 余场"},
+ pts:["四高炉主展区：前沿科技装置、火星探索场景、人形机器人互动。","博览会 1 万平方米，设未来引领、未来出行、未来人机、未来体验四大展区，有深空探测器模型、空间站核心组件复刻、无人驾驶汽车、低空飞行载具。","同期北京科幻嘉年华延伸到首钢园全域和模式口街区，入场领「星际护照」，打卡赢奖品，大跳台下有星际市集。","建议错峰，穿舒服的鞋，先冲展区再逛市集。"]},
+
+{k:"event",n:"爱鸟周",m:[4],free:1,when:"4 月",
+ s:"全市各区同步办活动，是一年里观鸟活动最密集的一周。",
+ f:{"主办":"北京市园林绿化局 + 各区","形式":"科普宣讲、观鸟比赛、自然笔记、观鸟导图发布"},
+ pts:["海淀在翠湖湿地做「飞羽寻踪」自然笔记活动；昌平在白浮泉公园发观鸟导图、办科普讲座；顺义办中小学生观鸟比赛。","恰逢候鸟北迁高峰，大量候鸟沿西山、燕山山脉迁徙。"]},
+
+{k:"event",n:"中国航天日",m:[4],free:1,when:"4 月 24 日",
+ s:"中国航天博物馆当天面向所有观众免费开放。",
+ f:{"时间":"每年 4 月 24 日","预约":"小程序选「4.24 航天日特殊免费票」，凭预约码或身份证入馆","加映":"2026 年配了《钱学森》科普观影，上下午各一场"},
+ pts:["观影座位有限，先到先得。","这一天全国航天系统单位都会有开放活动，不止博物馆一家。"]},
+
+{k:"event",n:"中科院公众科学日",m:[5],free:1,when:"5 月中旬 · 两天",
+ s:"全国百余个研究所同时开门。含金量最高的一档，但名额少、窗口窄。",
+ f:{"时间":"每年 5 月中旬（2026 年为 5 月 16–17 日）","参与所":"动物所、植物所、计算所、心理所等"},
+ pts:["动物所：新书分享会、院士科普报告、动物博物馆每日 10:00 和 15:00 公益讲解。","干细胞资源库参观实验需预约，限 6–14 周岁，每孩最多 1 名家长陪同；实验室操作环节仅限儿童进入，家长在外等候。","植物所：牡丹主题科普报告、永生花团扇科学手作、显微镜与电泳实验。","计算所：「一讲就懂的人工智能」系列科普讲座。","心理所：「心理梦工厂」科普基地开放。"],
+ warn:"名额通常限 10–100 人不等，<b>需提前预约</b>，放号即满。提前一周开始盯各所公众号。"},
+
+{k:"event",n:"全国科技活动周",m:[5],free:1,when:"5 月下旬",
+ s:"重点实验室和技术创新中心集中向公众开放，有真的动手环节。",
+ f:{"时间":"每年 5 月下旬（2026 年为 5 月 24–31 日）","2026 年":"市场监管局组织 9 家重点实验室、技术创新中心集中开放","预约":"各实验室指定方式，部分场次有人数限制"},
+ pts:["典型内容：走进家具检测实验室，看力学性能测试和环境气候舱实验，参与「小小质检员」亲手操作简易检测设备。","这类活动的价值在于孩子看到「科学是一份工作」，而不只是一个展品。"]},
+
+{k:"event",n:"国际博物馆日",m:[5],free:1,when:"5 月 18 日",
+ s:"北京多家博物馆当天有专场活动和免费或优惠政策。",
+ f:{"时间":"每年 5 月 18 日"},
+ pts:["值得在 5 月初单独查一次各馆公告，平时收费的馆当天可能免费。"]},
+
+{k:"event",n:"环球自然日",m:[4,5],free:1,when:"报名 4 月 · 展评 5 月底",
+ s:"孩子自己选题、查资料、做展板、现场答辩。深度远超一般听讲座，是这份清单里唯一需要长期准备的项目。",
+ f:{"性质":"公益性项目，不分民族、性别、宗教、体能、经济状况","北京承办":"国家自然博物馆","五类形式":"展览、表演、科学展演、科普绘画、故事播讲","参与确认":"4 月 1 日–5 月 12 日在官网完成","展评":"5 月 31 日现场展示答辩，分小学组和中学组"},
+ pts:["优秀作品可推荐参加全国活动（8 月，上海）。","建议提前一个学期定选题。","现场禁止携带刻刀、美工刀等，所有工具由辅导教师保存并监督使用。"],
+ warn:"未按活动进程安排、提前撤展视为弃赛，会取消全组成绩并计入黑名单。规则要读完。"},
+
+{k:"event",n:"世界机器人大会",m:[8],free:1,when:"8 月中下旬 · 五天",
+ s:"中国电子学会主办。未成年人免费，而且博览会门票可以直接看大赛——这是唯一一个能确定带孩子进去看青少年赛事的场合。",
+ f:{"时间":"每年 8 月（2026 年为 8 月 19–23 日）","地点":"北京亦庄北人亦创国际会展中心（荣昌东街 6 号）","交通":"地铁亦庄线荣昌东街站，出站约 200–400 米","票":"18 周岁以下免费申领，须一位持票成人陪同，一名成人最多带 3 名未成年人","入场":"所有观众含未成年人均需刷身份证原件"},
+ pts:["展馆分布：智造馆（A）、智合馆（B）、智创馆（C）、智趣馆（D1/D2）。智趣馆最适合孩子。","看大赛：A 馆序厅一层东侧是共融机器人挑战赛、BCI 脑控机器人大赛；<b>B 馆三层、四层是青少年机器人设计大赛</b>，小学生组基本都在这儿。","青少年赛项：AI 探索、VEX、MakeX、DOBOT 智造大挑战、Robo Genius、ENJOY AI、Super-track 超级轨迹、FTF 青少年无人机、九宫智能挑战、RA 极限冰壶、CREATE JR 棒球闪击、TAI 智能车挑战。","2026 年首次打造机器人消费街，能和机器人厨师、机器人服务员零距离互动。","首设四大主题日：发布日、采购日、开发者日、公众开放日。"],
+ warn:"门票仅限当日使用，进场即作废。会期周边多条道路 8:00–19:00 封闭管控，<b>别自驾</b>。"},
+
+{k:"event",n:"服贸会 · 公众开放日",m:[9],free:1,when:"9 月中旬 · 后两天",
+ s:"前三天专业观众日，后两天公众开放日，实名预约后免费。首钢园本身就是个科技体验场。",
+ f:{"时间":"每年 9 月（2026 年为 9 月 9–13 日，后两天开放）","地点":"石景山首钢园","票":"公众开放日实名预约免费","购票":"服贸会官网、公众号、App、小程序"},
+ pts:["2026 年 80 余家企业机构发布 180 余项创新成果，覆盖人工智能、医疗健康、绿色低碳。","现场配迎宾机器人、AI 眼镜、AI 翻译设备做多语种智能讲解。","70 余场配套活动含消费市集、文艺演出、科创展演，园区内有公众摆渡车。","首钢工业遗址景观本身值得逛，可以当半天户外。"]},
+
+{k:"event",n:"全国科普日",m:[9],free:1,when:"9 月",
+ s:"秋季这一波和 5 月科技活动周性质类似，各单位集中开放。",
+ f:{"时间":"每年 9 月"},
+ pts:["春秋两波是全年活动密度最高的两个窗口，可以对照着安排。"]},
+
+{k:"event",n:"中网公开赛",m:[9,10],free:0,when:"9 月底至 10 月初",
+ s:"国家网球中心。资格赛阶段票价最低，外场比赛可以随意走动近距离看。",
+ f:{"地点":"国家网球中心（奥林匹克公园）","时间":"一般在 9 月底至 10 月初","建议":"资格赛日性价比远高于决赛日"},
+ warn:"2026 年具体日期和票务政策<b>我未核实</b>，请查中网官方。"},
+
+{k:"event",n:"北京市学生机器人智能大赛",m:[11],free:1,when:"11 月中下旬",
+ s:"市教委主办、市少年宫承办。孩子能参加，但家长不能随便进去看。",
+ f:{"主办":"北京市教育委员会","承办":"北京市少年宫科技活动部","赛项":"机器人工程挑战赛面向小学 4–6 年级、初中、高中三个学段","组队":"每队 4 名学生 + 1–2 名辅导教师","费用":"公益，不向学生收费","通知":"北京市教委官网「通知公告」栏目"},
+ warn:"<b>这类市级赛事在学校或少年宫场地办，凭参赛证入场，非参赛家庭一般进不去。</b>想去只能先让孩子成为参赛者。判断通则：通知里写「竞赛」的多半进不去，写「博览」「嘉年华」「展示」「开放日」的多半能进。"}
+
+];
+
+/* ---------------- 状态 ---------------- */
+let selMonth = new Date().getMonth() + 1;
+let selKinds = new Set();
+let freeOnly = false;
+
+const $ = s => document.querySelector(s);
+const railEl = $("#rail"), chipsEl = $("#chips"), gridEl = $("#grid"), statusEl = $("#status");
+
+/* 统计 */
+$("#tTotal").textContent = DATA.length;
+$("#tFree").textContent = DATA.filter(d => d.free === 1).length;
+
+/* ---------------- 物候尺 ---------------- */
+function countFor(m){
+  return DATA.filter(d => (m === 0 || d.m.includes(m)) && matchKind(d) && matchFree(d)).length;
+}
+function buildRail(){
+  railEl.querySelectorAll(".mo").forEach(e => e.remove());
+  const frag = document.createDocumentFragment();
+  MONTHS.forEach(mo => {
+    const b = document.createElement("button");
+    b.className = "mo";
+    b.setAttribute("aria-pressed", selMonth === mo.n);
+    b.innerHTML = `<span class="tick">${String(mo.n).padStart(2,"0")}</span>
+      <span><span class="nm">${mo.name}</span><span class="ct">${countFor(mo.n)}</span>
+      <span class="ph">${mo.ph}</span></span>`;
+    b.onclick = () => { selMonth = (selMonth === mo.n ? 0 : mo.n); render(); };
+    frag.appendChild(b);
+  });
+  const all = document.createElement("button");
+  all.className = "mo all";
+  all.setAttribute("aria-pressed", selMonth === 0);
+  all.innerHTML = `<span class="tick">——</span><span><span class="nm">全年</span><span class="ct">${countFor(0)}</span></span>`;
+  all.onclick = () => { selMonth = 0; render(); };
+  frag.appendChild(all);
+  railEl.appendChild(frag);
+}
+
+/* ---------------- 类型 chips ---------------- */
+function buildChips(){
+  chipsEl.innerHTML = "";
+  Object.entries(KINDS).forEach(([k, v]) => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.setAttribute("aria-pressed", selKinds.has(k));
+    b.innerHTML = `<span class="dot" style="background:${v.color}"></span>${v.label}`;
+    b.onclick = () => { selKinds.has(k) ? selKinds.delete(k) : selKinds.add(k); render(); };
+    chipsEl.appendChild(b);
+  });
+}
+
+const matchKind = d => selKinds.size === 0 || selKinds.has(d.k);
+const matchFree = d => !freeOnly || d.free === 1;
+const matchMonth = d => selMonth === 0 || d.m.includes(selMonth);
+
+/* ---------------- 渲染 ---------------- */
+function render(){
+  buildRail(); buildChips();
+  $("#freeBtn").setAttribute("aria-pressed", freeOnly);
+
+  const list = DATA.filter(d => matchMonth(d) && matchKind(d) && matchFree(d));
+  const mLabel = selMonth === 0 ? "全年" : MONTHS[selMonth-1].name;
+  const kLabel = selKinds.size ? " · " + [...selKinds].map(k => KINDS[k].label).join(" / ") : "";
+  statusEl.textContent = `${mLabel}${kLabel}${freeOnly ? " · 仅免费" : ""} —— ${list.length} 项`;
+
+  if(!list.length){
+    gridEl.style.cssText = "border:1px solid var(--rule-soft)";
+    gridEl.innerHTML = `<div class="empty"><b class="serif">这个组合下没有条目。</b>
+      放宽一个条件试试：取消类型筛选，或者切到「全年」。</div>`;
+    return;
+  }
+  gridEl.style.cssText = "";
+  gridEl.innerHTML = "";
+  list.forEach(d => {
+    const b = document.createElement("button");
+    b.className = "item";
+    const costCls = d.free === 1 ? "f" : "p";
+    const costTxt = d.free === 1 ? "免费" : d.free === 2 ? "低价" : "售票";
+    b.innerHTML = `
+      <div class="top">
+        <span class="kind" style="color:${KINDS[d.k].color}">${KINDS[d.k].label}</span>
+        <span class="cost ${costCls}">${costTxt}</span>
+      </div>
+      <h3>${d.n}</h3>
+      <p>${d.s}</p>
+      <div class="when">${d.when}</div>`;
+    b.onclick = () => open(d);
+    gridEl.appendChild(b);
+  });
+}
+
+/* ---------------- 详情抽屉 ---------------- */
+const sheet = $("#sheet"), scrim = $("#scrim"), sheetIn = $("#sheetIn");
+let lastFocus = null;
+
+function open(d){
+  lastFocus = document.activeElement;
+  const facts = Object.entries(d.f || {}).map(([k, v]) =>
+    `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+  const pts = (d.pts || []).map(p => `<li>${p}</li>`).join("");
+  const months = d.m.length === 12 ? "全年" : d.m.map(n => MONTHS[n-1].name).join("、");
+  sheetIn.innerHTML = `
+    <button class="close" id="closeBtn" aria-label="关闭">✕</button>
+    <span class="kind" style="color:${KINDS[d.k].color}">${KINDS[d.k].label}</span>
+    <h2 id="sheetTitle">${d.n}</h2>
+    <p class="sub">${d.s}</p>
+    ${facts ? `<dl class="facts">${facts}</dl>` : ""}
+    <dl class="facts"><div><dt>适合月份</dt><dd>${months}</dd></div></dl>
+    ${pts ? `<h4>要点</h4><ul>${pts}</ul>` : ""}
+    ${d.warn ? `<div class="warn"><b>注意　</b>${d.warn}</div>` : ""}`;
+  sheet.classList.add("on"); scrim.classList.add("on");
+  document.body.style.overflow = "hidden";
+  sheet.scrollTop = 0;
+  $("#closeBtn").onclick = close;
+  sheet.focus();
+}
+function close(){
+  sheet.classList.remove("on"); scrim.classList.remove("on");
+  document.body.style.overflow = "";
+  if(lastFocus) lastFocus.focus();
+}
+scrim.onclick = close;
+document.addEventListener("keydown", e => { if(e.key === "Escape" && sheet.classList.contains("on")) close(); });
+
+$("#freeBtn").onclick = () => { freeOnly = !freeOnly; render(); };
+$("#resetBtn").onclick = () => { selMonth = 0; selKinds.clear(); freeOnly = false; render(); };
+
+render();
+</script>
+</body>
+</html>
